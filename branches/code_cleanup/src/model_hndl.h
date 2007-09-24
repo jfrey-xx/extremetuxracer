@@ -35,26 +35,29 @@ typedef struct {
 
 class model_hndl {
 //Class for handling models
+private:
+	int id;
 	
 public:
-	model_hndl();
+	
+	model_hndl(int _id);
 	std::list<model_t> l_models;
 	int num_models;
 	int cur_model;
 	
-	static bool   	  tuxLoaded;
-	static char*     tuxRootNode;
-	static char*     tuxLeftShoulderJoint;
-	static char*     tuxRightShoulderJoint;
-	static char*     tuxLeftHipJoint;
-	static char*     tuxRightHipJoint;
-	static char*     tuxLeftKneeJoint;
-	static char*     tuxRightKneeJoint;
-	static char*     tuxLeftAnkleJoint;
-	static char*     tuxRightAnkleJoint;
-	static char*     tuxTailJoint;
-	static char*     tuxNeck;
-	static char*     tuxHead;
+	bool   	  tuxLoaded;
+	char*     tuxRootNode;
+	char*     tuxLeftShoulderJoint;
+	char*     tuxRightShoulderJoint;
+	char*     tuxLeftHipJoint;
+	char*     tuxRightHipJoint;
+	char*     tuxLeftKneeJoint;
+	char*     tuxRightKneeJoint;
+	char*     tuxLeftAnkleJoint;
+	char*     tuxRightAnkleJoint;
+	char*     tuxTailJoint;
+	char*     tuxNeck;
+	char*     tuxHead;
 	
 	void adjust_tux_joints( double turnFact, bool isBraking, 
 				double paddling_factor, double speed,
@@ -81,7 +84,5 @@ public:
 };
 
 static void register_tux_callbacks( Tcl_Interp *ip );
-
-extern model_hndl* ModelHndl;
 
 #endif /* _MODEL_HNDL_H_ */

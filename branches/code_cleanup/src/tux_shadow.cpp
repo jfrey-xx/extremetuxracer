@@ -21,12 +21,13 @@
 
 #include "tux_shadow.h"
 #include "gl_util.h"
-#include "model_hndl.h"
+#include "player.h"
 #include "hier.h"
 #include "phys_sim.h"
 #include "textures.h"
 
 #include "game_config.h"
+#include "game_mgr.h"
 
 #define SHADOW_HEIGHT 0.1
 
@@ -34,32 +35,32 @@ void draw_tux_shadow()
 {
     if ( ! getparam_draw_tux_shadow() ) 
 	return;
-	
 	pp::Matrix model_matrix;
-    char *tux_root_node_name;
-    scene_node_t *tux_root_node;
-		
-    set_gl_options( TUX_SHADOW ); 
+	char *tux_root_node_name;
+	scene_node_t *tux_root_node;
+	set_gl_options( TUX_SHADOW ); 
 	
 	/* 
  	* Make the shadow darker if the stencil buffer is active 
  	*/
-	
 	if(getparam_stencil_buffer()){
-    	glColor4f( 0.0,0.0,0.0,0.3 );
+		glColor4f( 0.0,0.0,0.0,0.3 );
 	}else{
-    	glColor4f( 0.0,0.0,0.0,0.1 );
+		glColor4f( 0.0,0.0,0.0,0.1 );
 	}
 	
-    model_matrix.makeIdentity();
+	for(int i=0;i<gameMgr->numPlayers;i++) { //This should solve drawing shadows for multiple models.
+	
+	    model_matrix.makeIdentity();
 
-    tux_root_node_name = ModelHndl->get_tux_root_node();
+	    tux_root_node_name = players[i].Model->get_tux_root_node();
 
-    if ( get_scene_node( tux_root_node_name, &tux_root_node ) != TCL_OK ) {
-	check_assertion( 0, "couldn't find tux's root node" );
-    } 
+	    if ( get_scene_node( tux_root_node_name, &tux_root_node ) != TCL_OK ) {
+		check_assertion( 0, "couldn't find tux's root node" );
+	    } 
 
-    traverse_dag_for_shadow( tux_root_node, model_matrix );
+	    traverse_dag_for_shadow( tux_root_node, model_matrix );
+	 }
 }
 
 void traverse_dag_for_shadow( scene_node_t *node, pp::Matrix model_matrix )

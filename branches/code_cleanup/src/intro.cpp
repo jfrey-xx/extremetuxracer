@@ -31,7 +31,7 @@
 #include "loop.h"
 #include "render_util.h"
 #include "view.h"
-#include "model_hndl.h"
+#include "player.h"
 #include "tux_shadow.h"
 #include "fog.h"
 #include "hud.h"
@@ -57,29 +57,37 @@ Intro::Intro()
 
     init_key_frame();
 
-    players[0].orientation_initialized = false;
-
-    players[0].view.initialized = false;
-
     gameMgr->time = 0.0;
-	gameMgr->airbornetime = 0.0;
-    players[0].herring = 0;
-    players[0].score = 0;
+    gameMgr->airbornetime = 0.0;
+   
+    
+    for(i=0;i<gameMgr->numPlayers;i++) {
+	    players[i].orientation_initialized = false;
 
-	if(Benchmark::getMode()==Benchmark::PAUSED){
-		set_start_pt(Benchmark::getPosition());
-	}else{
-		players[0].pos.x = start_pt.x;
-    	players[0].pos.z = start_pt.y;
+	    players[i].view.initialized = false;
+
+	    players[i].herring = 0;
+	    players[i].score = 0;
+
+		if(Benchmark::getMode()==Benchmark::PAUSED){
+			set_start_pt(Benchmark::getPosition());
+		}else{
+			players[i].pos.x = start_pt.x;
+	    		players[i].pos.z = start_pt.y;
+		}
+		 players[i].vel = pp::Vec3d(0,0,0);
 	}
+	
     init_physical_simulation();
 
-    players[0].vel = pp::Vec3d(0,0,0);
+   
 
     clear_particles();
 
-    set_view_mode( players[0], ABOVE );
-    update_view( players[0], EPS ); 
+	for(i=0;i<gameMgr->numPlayers;i++) {
+	    set_view_mode( players[i], ABOVE );
+	    update_view( players[i], EPS ); 
+    }
 
     // reset all items as collectable 
     num_items = get_num_items();
@@ -129,37 +137,45 @@ Intro::loop(float timeStep)
 
     update_audio();
 
-    update_key_frame( players[0], timeStep );
-
+	int i;
+	
+	for(i=0;i<gameMgr->numPlayers;i++) {
+    		update_key_frame( players[i], timeStep );
+	}
+	
     clear_rendering_context();
 
     fogPlane.setup();
-
-    update_view( players[0], timeStep );
-
-    setup_view_frustum( players[0], NEAR_CLIP_DIST, 
+    
+	
+    update_view( players[0], timeStep ); //only local player
+	
+    setup_view_frustum( players[0], NEAR_CLIP_DIST,  //--||--
 			getparam_forward_clip_distance() );
 
-    draw_sky( players[0].view.pos );
+    draw_sky( players[0].view.pos ); //--||--
+	
 
     draw_fog_plane();
 
     set_course_clipping( true );
-    set_course_eye_point( players[0].view.pos );
+    set_course_eye_point( players[0].view.pos ); //--||--
     setup_course_lighting();
     render_course( );
     draw_trees();
 
-    ModelHndl->draw_tux();
+    for(i=0;i<gameMgr->numPlayers;i++) {
+    	players[i].Model->draw_tux();
+    }
     draw_tux_shadow();
 
-    HUD1.draw(players[0]);
+    HUD1.draw(players[0]); //Draw only local players hud
 
     reshape( width, height );
     winsys_swap_buffers();
 	
 	if( Benchmark::getMode() != Benchmark::NONE){
-		abort(players[0]);
+		abort(players[0]); //Abort only for local player
 	}
 }
 
@@ -180,8 +196,8 @@ Intro::abort( Player& plyr )
 
 bool
 Intro::keyPressEvent(SDLKey key)
-{ 
-	abort( players[0] );
+{ 	
+	abort( players[0] );//Abort only for local player
 	
 	return true;
 }

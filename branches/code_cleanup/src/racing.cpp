@@ -31,7 +31,7 @@
 #include "loop.h"
 #include "render_util.h"
 #include "view.h"
-#include "model_hndl.h"
+#include "player.h"
 #include "tux_shadow.h"
 #include "phys_sim.h"
 #include "part_sys.h"
@@ -88,14 +88,15 @@ Racing::Racing()
     // We need to reset controls here since callbacks won't have been
     //   called in paused mode. This results in duplication between this
     //   code and init_physical_simulation.  Oh well. 
-
-    players[0].control.turn_fact = 0.0;
-    players[0].control.turn_animation = 0.0;
-    players[0].control.is_braking = false;
-    players[0].control.is_paddling = false;
-    players[0].control.jumping = false;
-    players[0].control.jump_charging = false;
-	players[0].max_speed = 0;
+    for(int i=0;i<gameMgr->numPlayers;i++) {
+	    players[i].control.turn_fact = 0.0;
+	    players[i].control.turn_animation = 0.0;
+	    players[i].control.is_braking = false;
+	    players[i].control.is_paddling = false;
+	    players[i].control.jumping = false;
+	    players[i].control.jump_charging = false;
+	    players[i].max_speed = 0;
+    }
 
     // Set last_terrain to a value not used below
     m_lastTerrain = 0;
@@ -119,7 +120,9 @@ Racing::~Racing()
     halt_sound( "rock_sound" );
     halt_sound( "ice_sound" );
     halt_sound( "snow_sound" );
-    break_track_marks();
+    for(int i=0;i<gameMgr->numPlayers;i++) {
+    	track_marks_array[i].break_track_marks();
+    }
 }
 
 void
@@ -139,7 +142,7 @@ Racing::loop(float timeStep)
     float terrain_weights[NUM_TERRAIN_TYPES];
     int new_terrain = 0;
     int slide_volume;
-	unsigned int i;
+    unsigned int i;
 
 	if (Benchmark::getMode() == Benchmark::AUTO){
 		m_paddling = true;
@@ -149,9 +152,11 @@ Racing::loop(float timeStep)
     speed = dir.normalize();
 	
 	//set max_speed
-	if (speed > players[0].max_speed) players[0].max_speed=int(speed);
-
+	for(i=0;i<gameMgr->numPlayers;i++) {
+		if (speed > players[i].max_speed) players[i].max_speed=int(speed);
+	}
 	
+	//For LAN-multiplayer we don't need to calculate the fall for the other player..
     airborne = (bool) ( players[0].pos.y > ( find_y_coord(players[0].pos.x, 
 						       players[0].pos.z) + 
 					  JUMP_MAX_START_HEIGHT ) );
@@ -361,11 +366,13 @@ Racing::loop(float timeStep)
 	}
     }
 
-    update_player_pos( players[0], timeStep );
-	 
-	//Track Marks
-    add_track_mark( players[0] );
 
+	for(i=0;i<gameMgr->numPlayers;i++) {    
+	    update_player_pos( players[i], timeStep );
+		 
+		//Track Marks
+	    track_marks_array[i].add_track_mark( players[i] );
+	}
 
     update_view( players[0], timeStep );
 
@@ -393,7 +400,9 @@ Racing::loop(float timeStep)
 	draw_particles( players[0] );
     }
 
-    ModelHndl->draw_tux();
+    for(i=0;i<gameMgr->numPlayers;i++) {    
+    		players[0].Model->draw_tux();
+    }
     draw_tux_shadow();
 
     HUD1.draw(players[0]);

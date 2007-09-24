@@ -24,84 +24,28 @@
 #include "model_hndl.h"
 #include "hier.h"
 #include "phys_sim.h"
-#include "textures.h"
 #include "course_render.h"
 #include "render_util.h"
 #include "game_config.h"
 #include "course_mgr.h"
+#include "textures.h"
+
+#include "course_load.h"
 
 #include "ppgltk/alg/defs.h"
 
 #include "game_mgr.h"
 
-
-#undef TRACK_TRIANGLES
-
-#define TRACK_WIDTH  0.7
-#define MAX_TRACK_MARKS 1000
-#define MAX_CONTINUE_TRACK_DIST TRACK_WIDTH*4
-#define MAX_CONTINUE_TRACK_TIME .1
-#define SPEED_TO_START_TRENCH 0.0
-#define SPEED_OF_DEEPEST_TRENCH 10
-
-#ifdef TRACK_TRIANGLES
-  #define TRACK_HEIGHT 0.1
-  #define MAX_TRACK_DEPTH 10
-  #define MAX_TRIS MAX_TRACK_MARKS
-#else
-  #define TRACK_HEIGHT 0.08
-  #define MAX_TRACK_DEPTH 0.7
-#endif
-
-typedef enum track_types_t {
-    TRACK_HEAD,
-    TRACK_MARK,
-    TRACK_TAIL,
-    NUM_TRACK_TYPES
-} track_types_t;
-
-typedef struct track_quad_t {
-    pp::Vec3d v1, v2, v3, v4;
-    pp::Vec2d t1, t2, t3, t4;
-    pp::Vec3d n1, n2, n3, n4;
-    track_types_t track_type;
-	int terrain;
-    double alpha;
-} track_quad_t;
-
-typedef struct track_marks_t {
-    track_quad_t quads[MAX_TRACK_MARKS];
-    int current_mark;
-    int next_mark;
-    double last_mark_time;
-    pp::Vec3d last_mark_pos;
-} track_marks_t;
-
-static track_marks_t track_marks;
-static bool continuing_track;
+Track_marks track_marks_array[NUM_PLAYERS];
 
 extern terrain_tex_t terrain_texture[NUM_TERRAIN_TYPES];
 extern unsigned int num_terrains;
 
+
 #ifdef TRACK_TRIANGLES
-typedef struct track_tris_t {
-    triangle_t tri[MAX_TRIS];
-    track_types_t *track_type[MAX_TRIS];
-    double *alpha[MAX_TRIS];
-    int first_mark;
-    int next_mark;
-    int current_start;
-    int current_end;
-    int num_tris;
-} track_tris_t;
 
-typedef struct track_tri_t {
-    pp::Vec3d v1, v2, v3;
-} track_tri_t;
-
-static track_tris_t track_tris;
-
-static void draw_tri( triangle_t *tri, double alpha )
+void
+Track_marks::draw_tri( triangle_t *tri, double alpha )
 {
     pp::Vec3d nml;
     GLfloat c[4] = {1.0, 0.0, 0.0, 1.0}; 
@@ -131,7 +75,8 @@ static void draw_tri( triangle_t *tri, double alpha )
     glEnd();
 }
 
-static void draw_tri_tracks( void )
+void
+Track_marks::draw_tri_tracks( void )
 {
     GLuint texid[NUM_TRACK_TYPES];
     int i;
@@ -156,7 +101,8 @@ static void draw_tri_tracks( void )
     }
 }
 
-static void add_tri_tracks_from_tri( pp::Vec3d p1, pp::Vec3d p2, pp::Vec3d p3,
+void
+Track_marks::add_tri_tracks_from_tri( pp::Vec3d p1, pp::Vec3d p2, pp::Vec3d p3,
 				     pp::Vec2d t1, pp::Vec2d t2, pp::Vec2d t3,
 				     track_types_t *track_type, double *alpha )
 {
@@ -315,7 +261,8 @@ static void add_tri_tracks_from_tri( pp::Vec3d p1, pp::Vec3d p2, pp::Vec3d p3,
 
 }
 
-static void add_tri_tracks_from_quad( track_quad_t *q )
+void
+Track_marks::add_tri_tracks_from_quad( track_quad_t *q )
 {
     add_tri_tracks_from_tri( q->v1, q->v2, q->v3, q->t1, q->t2, q->t3,
 			     &q->track_type, &q->alpha );
@@ -325,9 +272,8 @@ static void add_tri_tracks_from_quad( track_quad_t *q )
 
 #endif
 
-
-
-void init_track_marks(void)
+void
+Track_marks::init_track_marks( void )
 {
     track_marks.current_mark = 0;
     track_marks.next_mark = 0;
@@ -342,8 +288,8 @@ void init_track_marks(void)
 }
 
 
-
-void draw_track_marks(void)
+void
+Track_marks::draw_track_marks(void)
 {
 #ifdef TRACK_TRIANGLES
     draw_tri_tracks();
@@ -486,7 +432,8 @@ void draw_track_marks(void)
 
 }
 
-void break_track_marks( void )
+void
+Track_marks::break_track_marks( void )
 {
     track_quad_t *qprev, *qprevprev;
     qprev = &track_marks.quads[(track_marks.current_mark-1)%MAX_TRACK_MARKS];
@@ -506,7 +453,8 @@ void break_track_marks( void )
     continuing_track = false;
 }
 
-void add_track_mark( Player& plyr )
+void
+Track_marks::add_track_mark( Player& plyr )
 {
     pp::Vec3d width_vector;
     pp::Vec3d left_vector;

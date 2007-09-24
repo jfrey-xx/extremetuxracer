@@ -19,7 +19,7 @@
  
  
 #include "graphicsconfig.h"
-
+#include "player.h"
 #include "game_config.h"
 #include "game_mgr.h"
 #include "ppgltk/ui_mgr.h"
@@ -31,7 +31,7 @@ GraphicsConfig::GraphicsConfig()
 	
 	pp::Vec2d pos(0,0);
 
-	m_modelList = ModelHndl->l_models;
+	m_modelList = players[0].Model->l_models;
 	std::list<model_t>::iterator modelit=m_modelList.begin();
 
 	m_langList=translation.LanguageList();
@@ -48,7 +48,7 @@ GraphicsConfig::GraphicsConfig()
 		
 	if(!found) langit = m_langList.begin();
      
-     for(int i=0;i<ModelHndl->cur_model;i++) {
+     for(int i=0;i<players[0].Model->cur_model;i++) {
      	modelit++;
      }
      
@@ -140,7 +140,7 @@ GraphicsConfig::apply()
 	std::list<language_t>::iterator langit = mp_langListBox->getCurrentItem();
 	translation.load((*langit).language.c_str());	
 	std::list<model_t>::iterator modelit = mp_modelListBox->getCurrentItem();
-	ModelHndl->load_model((*modelit).id);	
+	players[0].Model->load_model((*modelit).id);	
 	setparam_ui_language((char*)(*langit).language.c_str());
 	setparam_ui_snow(bool( mp_uiSnowBox->getState() ));
 	setparam_display_fps(bool( mp_fpsBox->getState() ));

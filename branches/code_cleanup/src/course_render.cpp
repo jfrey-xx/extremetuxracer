@@ -32,6 +32,7 @@
 #include "track_marks.h"
 
 #include "game_config.h"
+#include "game_mgr.h"
 
 #include "ppgltk/alg/defs.h"
 
@@ -307,7 +308,9 @@ void render_course()
 
     render_course_quadtree( );
 	
-    draw_track_marks();
+    for(int i=0;i<gameMgr->numPlayers;i++) {
+   	 track_marks_array[i].draw_track_marks();
+    }
 }
 
 void draw_sky(pp::Vec3d pos)

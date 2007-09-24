@@ -29,7 +29,7 @@
 #include "phys_sim.h"
 #include "view.h"
 #include "course_render.h"
-#include "model_hndl.h"
+#include "player.h"
 #include "tux_shadow.h"
 #include "loop.h"
 #include "fog.h"
@@ -95,7 +95,7 @@ Paused::~Paused()
 void
 Paused::loop(float timeStep)
 {
-    int width, height;
+    int width, height, i;
     width = getparam_x_resolution();
     height = getparam_y_resolution();
 
@@ -118,8 +118,9 @@ Paused::loop(float timeStep)
     clear_rendering_context();
 
     fogPlane.setup();
-
-    update_player_pos( players[0], 0 );
+    for(i=0;i<gameMgr->numPlayers;i++) {
+    	update_player_pos( players[i], 0 );
+    }
     update_view( players[0], 0 );
 
     setup_view_frustum( players[0], NEAR_CLIP_DIST, 
@@ -136,10 +137,14 @@ Paused::loop(float timeStep)
     draw_trees();
 
     if ( getparam_draw_particles() ) {
-		draw_particles( players[0] );
+    		for(i=0;i<gameMgr->numPlayers;i++) {
+			draw_particles( players[i] );
+		}
     }
 
-    ModelHndl->draw_tux();
+    for(i=0;i<gameMgr->numPlayers;i++) {
+    	players[i].Model->draw_tux();
+    }
     draw_tux_shadow();
 
     set_gl_options( GUI );

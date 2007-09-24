@@ -23,7 +23,7 @@
 #include "course_render.h"
 #include "hier.h"
 #include "hier_util.h"
-#include "model_hndl.h"
+#include "player.h"
 #include "part_sys.h"
 #include "phys_sim.h"
 #include "nmrcl.h"
@@ -623,7 +623,7 @@ void set_tux_pos( Player& plyr, pp::Vec3d new_pos )
 
     disp_y = new_pos.y + TUX_Y_CORRECTION_ON_STOMACH; 
 
-    tuxRoot = ModelHndl->get_tux_root_node();
+    tuxRoot = plyr.Model->get_tux_root_node();
     reset_scene_node( tuxRoot );
     translate_scene_node( tuxRoot, 
 			  pp::Vec3d( new_pos.x, disp_y, new_pos.z ) );
@@ -632,6 +632,8 @@ void set_tux_pos( Player& plyr, pp::Vec3d new_pos )
 bool check_tree_collisions( Player& plyr, pp::Vec3d pos, 
 			      pp::Vec3d *tree_loc, float *tree_diam )
 {
+
+
     if(getparam_disable_collision_detection()){
 		return false;
 	}	
@@ -711,7 +713,7 @@ bool check_tree_collisions( Player& plyr, pp::Vec3d pos,
         mat.makeTranslation( loc.x, loc.y, loc.z );
         trans_polyhedron( mat, ph2 );
 
-	tux_root = ModelHndl->get_tux_root_node();
+	tux_root = plyr.Model->get_tux_root_node();
 	reset_scene_node( tux_root );
 	translate_scene_node( tux_root, 
 			      pp::Vec3d( pos.x, pos.y, pos.z ) );
@@ -837,6 +839,7 @@ float get_compression_depth( const int terrain )
 static void adjust_for_tree_collision( Player& plyr, 
 				       pp::Vec3d pos, pp::Vec3d *vel )
 {
+//This really needs to be fixed.. the tree collision looks terrible
     pp::Vec3d treeNml;
     pp::Vec3d treeLoc;
     bool treeHit;
@@ -1045,7 +1048,7 @@ void adjust_orientation( Player& plyr, float dtime,
 
     inv_cob_mat.transpose(cob_mat);
 
-    tux_root = ModelHndl->get_tux_root_node();
+    tux_root = plyr.Model->get_tux_root_node();
     transform_scene_node( tux_root, cob_mat, inv_cob_mat ); 
 }
 
@@ -1717,6 +1720,7 @@ void solve_ode_system( Player& plyr, float dtime )
  * Updates Tux's position taking into account gravity, friction, tree 
  * collisions, etc.  This is the main physics function.
  */
+ 
 void update_player_pos( Player& plyr, float dtime )
 {
     pp::Vec3d surf_nml;   /* normal vector of terrain */
@@ -1774,7 +1778,7 @@ void update_player_pos( Player& plyr, float dtime )
 	    JUMP_FORCE_DURATION;
     } 
 
-    ModelHndl->adjust_tux_joints( plyr.control.turn_animation, plyr.control.is_braking,
+    plyr.Model->adjust_tux_joints( plyr.control.turn_animation, plyr.control.is_braking,
 		       paddling_factor, speed, local_force, flap_factor );
 }
 
