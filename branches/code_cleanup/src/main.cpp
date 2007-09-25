@@ -22,7 +22,7 @@
 #include "course_load.h"
 #include "course_render.h"
 #include "textures.h"
-#include "player.h"
+#include "model_hndl.h"
 #include "phys_sim.h"
 #include "part_sys.h"
 #include "keyframe.h"
@@ -171,6 +171,7 @@ int main( int argc, char *argv[] )
 
 	gameMgr = new GameMgr();
 	Highscore = new highscore();
+	ModelHndl = new model_hndl();
 	
     /* Seed the random number generator */
     srand( time(NULL) );
@@ -258,8 +259,8 @@ int main( int argc, char *argv[] )
 	translation.load( getparam_ui_language() );
 	
     // Load model
-    //ModelHndl->init_models();
-   //Loaded in player instead.
+    ModelHndl->init_models();
+   // ModelHndl->load_model(0); Loaded in players[0]::loadData()
     
     init_textures();
     init_audio_data();
@@ -272,8 +273,13 @@ int main( int argc, char *argv[] )
 	/* Read the ppracer_init.tcl file */
     read_game_init_script();
 
-     /* Init player: */
-     players[0].init(0);
+     /* Temporary name until user enters another name*/
+     players[0].name = "Tux";
+	players[0].loadData();
+	
+	//Ugly hax to prevent from segfault, fix to later version
+	players[0].saveData();
+	players[0].loadData();
 	
 	
 	/* Init highscore */

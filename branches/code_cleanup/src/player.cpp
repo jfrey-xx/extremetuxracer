@@ -18,12 +18,13 @@
  */
 
 #include "player.h"
+#include "model_hndl.h"
 #include "game_config.h"
 #include "course_load.h"
 
 #define PLAYER_MAX_LIVES 5
 
-Player players[NUM_PLAYERS];
+Player players[1];
 
 PlayerCourseData::PlayerCourseData()
  : won(false), time(0.0), herring(0), score(0)
@@ -199,16 +200,6 @@ Player::~Player()
 {	
 }
 
-void
-Player::init(int _id) {
-	id=_id;
-	name="Tux";
-	Model = new model_hndl(_id);
-	Model->init_models();
-	loadData();
-	Model->load_model(cur_model);
-}
-
 bool
 Player::isCupComplete( std::string event,
 						std::string cup)
@@ -358,7 +349,7 @@ Player::saveData()
 	sfile << "easy" << std::endl;
 	sfile << 1 << std::endl;
 	sfile << name << std::endl;
-	sfile << Model->cur_model <<std::endl;
+	sfile << ModelHndl->cur_model <<std::endl;
 	sfile << courses.size() << std::endl;
 	
 	std::map<std::string,PlayerCourseData>::iterator it;
@@ -407,6 +398,7 @@ Player::loadData()
 	
 	int version;
 	int numcourses;
+	int model;
 	
 	std::string notused;
 			
@@ -416,7 +408,7 @@ Player::loadData()
 		sfile >> notused; //difficulty
 		sfile >> notused; //num difficulties
 		sfile >> name;
-		sfile >> cur_model;
+		sfile >> model;
 		sfile >> numcourses;
 		
 		for (int i=0; i<numcourses ;i++){
@@ -443,6 +435,7 @@ Player::loadData()
 	} else {
 		std::cout<<"Fileversions missmatch, sorry, saved data deleted"<<std::endl;
 	}
+	ModelHndl->load_model(model);
 	return true;
 }
 

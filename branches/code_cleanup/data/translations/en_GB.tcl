@@ -117,7 +117,6 @@ pp_translate_string "Congratulations! You won the event!" "Congratulations! You 
 #highscore
 #pp_translate_string "Highscore" ""
 #pp_translate_string "You made it to the %s place in the highscore!" ""
-#pp_translate_string "You didn't made it to the highscore" ""
 #pp_translate_string "Player name:" ""
 #pp_translate_string "1:st" ""
 #pp_translate_string "2:nd" ""

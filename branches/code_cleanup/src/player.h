@@ -24,14 +24,11 @@
 #define _PLAYER_H_
 
 #include "course_mgr.h"
-#include "model_hndl.h"
 
 #include <list>
 #include <map>
 #include <string>
 #include <fstream>
-
-static const int NUM_PLAYERS = 1; //This is only a variable to tell the MAXIUM number of players, and is used to initialize arrays.
 
 
 class PlayerCourseData
@@ -103,18 +100,11 @@ class Player
 	
 	int m_lives;
 	
-	int id;
-	
 public:
 	Player();
 	~Player();
 
 	static const int FILE_VERSION=2;
-
-	int cur_model;
-	model_hndl* Model;
-
-	void init(int _id);
 
 	bool isCupComplete(std::string event,
 						std::string cup);
@@ -212,6 +202,6 @@ public:
 };
 
 ///global array of players
-extern Player players[NUM_PLAYERS];
+extern Player players[1];
 
 #endif // _PLAYER_H_

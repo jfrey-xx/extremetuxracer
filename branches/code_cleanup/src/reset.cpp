@@ -1,5 +1,5 @@
 /* 
- * ETRacer 
+ * PPRacer 
  * Copyright (C) 2004-2005 Volker Stroebel <volker@planetpenguin.de>
  *
  * Copyright (C) 1999-2001 Jasmin F. Patry
@@ -32,7 +32,7 @@
 #include "phys_sim.h"
 #include "view.h"
 #include "course_render.h"
-#include "player.h"
+#include "model_hndl.h"
 #include "tux_shadow.h"
 #include "loop.h"
 #include "fog.h"
@@ -69,7 +69,7 @@ Reset::loop(float timeStep)
 	int width, height;
     float elapsed_time = getClockTime() - m_resetStartTime;
     float course_width, course_length;
-    static bool tux_visible = true;
+    static bool tux_visible = true; 
     static int tux_visible_count = 0;
     item_type_t  *item_types;
     Item       *item_locs;
@@ -87,11 +87,10 @@ Reset::loop(float timeStep)
 
     fogPlane.setup();
 
-    for(int i=0;i<gameMgr->numPlayers;i++) {
-	    update_player_pos( players[i], EPS ); //Sets the position for every player
-    }
-    //Sets the view from the first player (always local player if we start with multiplayer)
+    update_player_pos( players[0], EPS );
+	
     update_view( players[0], EPS );
+
     setup_view_frustum( players[0], NEAR_CLIP_DIST, 
 			getparam_forward_clip_distance() );
 
@@ -138,7 +137,6 @@ Reset::loop(float timeStep)
 		}
 	    }
 
-	//If multiplayer, the players cant both be placed in the middle, so this needs to be SOLVED.
 	    if ( best_loc == -1 ) {
 		get_course_dimensions( &course_width, &course_length );
 		players[0].pos.x = course_width/2.0;
@@ -160,16 +158,13 @@ Reset::loop(float timeStep)
 	m_positionReset = true;
     }
 
-   
     if (tux_visible) { 
-		for(int i=0;i<gameMgr->numPlayers;i++) {
-		players[i].Model->draw_tux();
-		}
-   		draw_tux_shadow(); //this function draws all the shadows for all players.
+	ModelHndl->draw_tux();
+	draw_tux_shadow();
     } 
     if (++tux_visible_count > 3) {
-		tux_visible = (bool) !tux_visible;
-		tux_visible_count = 0;
+	tux_visible = (bool) !tux_visible;
+	tux_visible_count = 0;
     }
 
     HUD1.draw(players[0]);

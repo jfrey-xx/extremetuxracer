@@ -26,7 +26,6 @@
 #include "course_quad.h"
 #include "track_marks.h"
 #include "game_config.h"
-#include "game_mgr.h"
 #include "course_mgr.h"
 
 static bool mirrored = false;
@@ -134,9 +133,7 @@ void set_course_mirroring( bool state )
     if ( mirrored != state ) {
 	mirror_key_frame();
 	mirror_course();
-	for(int i=0;i<gameMgr->numPlayers;i++) {
-		track_marks_array[i].init_track_marks();
-	}
+	init_track_marks();
     }
     mirrored = state;
     

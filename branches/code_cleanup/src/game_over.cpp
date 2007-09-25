@@ -32,7 +32,7 @@
 #include "phys_sim.h"
 #include "view.h"
 #include "course_render.h"
-#include "player.h"
+#include "model_hndl.h"
 #include "tux_shadow.h"
 #include "loop.h"
 #include "fog.h"
@@ -66,8 +66,6 @@ GameOver::GameOver()
 	if ( !m_aborted ) {
 		gameMgr->updatePlayersScores();
     }
-    
-    //Here we need to do something different if the race was multiplayer
 		
     if ( gameMgr->gametype!=GameMgr::PRACTICING ) {
 		m_bestScore = gameMgr->updateCurrentRaceData();		
@@ -137,14 +135,12 @@ GameOver::GameOver()
 		mp_flyingLbl = new pp::Label(pos,"race_stats",buff);
 		mp_flyingLbl->alignment.center();
 		
-		char buff2[70];
-		sprintf(buff2, "");
+		char buff2[50];
+		snprintf(buff2, 50, "");
 		if(highscore::useHighscore) {
 			int pos = Highscore->addScore(gameMgr->getCurrentRace().name,players[0].name,players[0].score);
 			if(pos != -1)
-				sprintf(buff2 , _("You made it to the %s place in the highscore!"),highscore::posToStr(pos).c_str());
-			else
-				sprintf(buff2 , _("You didn't made it to the highscore!"),highscore::posToStr(pos).c_str());
+				snprintf(buff2, 50, _("You made it to the %s place in the highscore!"),highscore::posToStr(pos).c_str());
 		}
 		pos.y-=30;
 		mp_highscoreLbl = new pp::Label(pos,"race_stats",buff2);
@@ -191,7 +187,6 @@ void
 GameOver::loop(float timeStep)
 {
     int width, height;
-    int i;
     width = getparam_x_resolution();
     height = getparam_y_resolution();
 
@@ -217,11 +212,7 @@ GameOver::loop(float timeStep)
     clear_rendering_context();
 
     fogPlane.setup();
-    
-    for(i=0;i<gameMgr->numPlayers;i++) {
-    	update_player_pos( players[i], 0 );
-    }
-    
+    update_player_pos( players[0], 0 );
     update_view( players[0], 0 );
 
     setup_view_frustum( players[0], NEAR_CLIP_DIST, 
@@ -235,15 +226,11 @@ GameOver::loop(float timeStep)
     setup_course_lighting();
     render_course();
     draw_trees();
-    
     if ( getparam_draw_particles() ) {
-    		for(i=0;i<gameMgr->numPlayers;i++) {
-			draw_particles( players[i] );
-		}
+		draw_particles( players[0] );
     }
-    for(i=0;i<gameMgr->numPlayers;i++) {
-    		players[i].Model->draw_tux();
-    }
+
+    ModelHndl->draw_tux();
     draw_tux_shadow();
     set_gl_options( GUI );
 

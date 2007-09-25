@@ -19,11 +19,10 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "player.h"
+#include "model_hndl.h"
 #include "phys_sim.h"
 #include "hier.h"
 #include "loop.h"
-#include "game_mgr.h"
 
 #include "ppgltk/alg/defs.h"
 
@@ -48,10 +47,9 @@ void reset_key_frame()
 void init_key_frame()
 {
     keyTime = frames[0].time;
-    for(int i=0;i<gameMgr->numPlayers;i++) {
-	    reset_scene_node( players[i].Model->get_tux_head() );
-	    reset_scene_node( players[i].Model->get_tux_neck() );
-    }
+
+    reset_scene_node( ModelHndl->get_tux_head() );
+    reset_scene_node( ModelHndl->get_tux_neck() );
 } 
 
 double interp( double frac, double v1, double v2 ) 
@@ -80,18 +78,18 @@ void update_key_frame( Player& plyr, double dt )
     char *neck;
     char *tail;
 
-    root = plyr.Model->get_tux_root_node();
-    lsh  = plyr.Model->get_tux_left_shoulder_joint();
-    rsh  = plyr.Model->get_tux_right_shoulder_joint();
-    lhp  = plyr.Model->get_tux_left_hip_joint();
-    rhp  = plyr.Model->get_tux_right_hip_joint();
-    lkn  = plyr.Model->get_tux_left_knee_joint();
-    rkn  = plyr.Model->get_tux_right_knee_joint();
-    lank = plyr.Model->get_tux_left_ankle_joint();
-    rank = plyr.Model->get_tux_right_ankle_joint();
-    head = plyr.Model->get_tux_head();
-    neck = plyr.Model->get_tux_neck();
-    tail = plyr.Model->get_tux_tail_joint();
+    root = ModelHndl->get_tux_root_node();
+    lsh  = ModelHndl->get_tux_left_shoulder_joint();
+    rsh  = ModelHndl->get_tux_right_shoulder_joint();
+    lhp  = ModelHndl->get_tux_left_hip_joint();
+    rhp  = ModelHndl->get_tux_right_hip_joint();
+    lkn  = ModelHndl->get_tux_left_knee_joint();
+    rkn  = ModelHndl->get_tux_right_knee_joint();
+    lank = ModelHndl->get_tux_left_ankle_joint();
+    rank = ModelHndl->get_tux_right_ankle_joint();
+    head = ModelHndl->get_tux_head();
+    neck = ModelHndl->get_tux_neck();
+    tail = ModelHndl->get_tux_tail_joint();
 
     keyTime += dt;
 

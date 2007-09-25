@@ -27,7 +27,6 @@
 #include "gl_util.h"
 #include "game_config.h"
 #include "string_util.h"
-#include "player.h"
 
 #include "course_mgr.h"
 
@@ -39,97 +38,22 @@
 #define MAX_EXT_PADDLING_ANGLE 30.0
 #define MAX_KICK_PADDLING_ANGLE 20.0
 
-model_hndl::model_hndl(int _id) {
-	cur_model=0;
-	num_models=0;
-	id=_id;
-}
-
-void model_hndl::init_models() {
-	//Load modellist from data/models.tcl
-	char buff[BUFF_LEN];
-     
-	sprintf(buff, "%s/models.tcl", getparam_data_dir());
-			
-	registerHierCallbacks( tclInterp );
-     register_tux_callbacks( tclInterp );
-     
-	if ( Tcl_EvalFile( tclInterp , buff ) != TCL_OK) {
-		std::cerr << " error evalating model list file " << buff
-				<< " : " << Tcl_GetStringResult (tclInterp ) << std::endl;
-	}
-	
-	/*
-	*Debug stuff:
-	for(std::list<model_t>::iterator it=l_models.begin();it!=l_models.end();++it) {
-		std::cout<<(*it).name<<": "<<(*it).filename<<std::endl;
-	}
-	*/
-}
-
-void
-model_hndl::load_model() 
-{
-	tuxLoaded=false;
-	load_model(cur_model);
-}
-
-static int cur_player=0; //The current player (players[cur_player]) to load the model for.. needed since the callbacks for the tcl is static.
-
-void
-model_hndl::load_model(int model=0)
-{	
-    //Loads a model.
-    char cwd[BUFF_LEN];
-    char buff[BUFF_LEN];
-
-    std::list<model_t>::iterator c_model=l_models.begin();
-    if(model!=0) {
-    	for(int i=0;i<model;i++) {
-    		c_model++;
-    	}
-    }
+bool		model_hndl::tuxLoaded = false;
+char*     model_hndl::tuxRootNode;
+char*     model_hndl::tuxLeftShoulderJoint;
+char*     model_hndl::tuxRightShoulderJoint;
+char*     model_hndl::tuxLeftHipJoint;
+char*     model_hndl::tuxRightHipJoint;
+char*     model_hndl::tuxLeftKneeJoint;
+char*     model_hndl::tuxRightKneeJoint;
+char*     model_hndl::tuxLeftAnkleJoint;
+char*     model_hndl::tuxRightAnkleJoint;
+char*     model_hndl::tuxTailJoint;
+char*     model_hndl::tuxNeck;
+char*     model_hndl::tuxHead;
 
 
-    if ( tuxLoaded == true && cur_model==model) 
-        return;
-    cur_model=model;
-    tuxLoaded = true;
-    initialize_scene_graph();
-
-    if ( getcwd( cwd, BUFF_LEN ) == NULL ) {
-	handle_system_error( 1, "getcwd failed" );
-    }
-    if ( chdir( getparam_data_dir() ) != 0 ) {
-	/* Print a more informative warning since this is a common error */
-	handle_system_error( 
-	    1, "Can't find the etracer data "
-	    "directory.  Please check the\nvalue of `data_dir' in "
-	    "~/.etracer/options and set it to the location where you\n"
-	    "installed the etracer-data files.\n\n"
-	    "Couldn't chdir to %s", getparam_data_dir() );
-	/*
-        handle_system_error( 1, "couldn't chdir to %s", getparam_data_dir() );
-	*/
-    } 
-    
-    cur_player = id; //Set this models player to the one to load the model for. 
-    
-    if ( Tcl_EvalFile( tclInterp, (*c_model).filename.c_str()) == TCL_ERROR ) {
-        handle_error( 1, "error evalating %s/%s: %s\n"
-		      "Please check the value of `data_dir' in ~/.etracer/options "
-		      "and make sure it\npoints to the location of the "
-		      "latest version of the etracer-data files.", 
-		      getparam_data_dir(),(*c_model).filename.c_str(),
-		      Tcl_GetStringResult( tclInterp ) );
-    } 
-    check_assertion( !Tcl_InterpDeleted( tclInterp ),
-		     "Tcl interpreter deleted" );
-
-    if ( chdir( cwd ) != 0 ) {
-	handle_system_error( 1, "couldn't chdir to %s", cwd );
-    } 
-} 
+model_hndl* ModelHndl=NULL;
 
 void
 model_hndl::adjust_tux_joints( double turnFact, bool isBraking, 
@@ -237,6 +161,96 @@ model_hndl::draw_tux()
     draw_scene_graph( tuxRootNode );
 } 
 
+model_hndl::model_hndl() {
+	cur_model=0;
+	num_models=0;
+}
+
+void model_hndl::init_models() {
+	//Load modellist from data/models.tcl
+	char buff[BUFF_LEN];
+     
+	sprintf(buff, "%s/models.tcl", getparam_data_dir());
+			
+	registerHierCallbacks( tclInterp );
+     register_tux_callbacks( tclInterp );
+     
+	if ( Tcl_EvalFile( tclInterp , buff ) != TCL_OK) {
+		std::cerr << " error evalating model list file " << buff
+				<< " : " << Tcl_GetStringResult (tclInterp ) << std::endl;
+	}
+	
+	/*
+	*Debug stuff:
+	for(std::list<model_t>::iterator it=l_models.begin();it!=l_models.end();++it) {
+		std::cout<<(*it).name<<": "<<(*it).filename<<std::endl;
+	}
+	*/
+}
+
+void
+model_hndl::load_model() 
+{
+	tuxLoaded=false;
+	load_model(cur_model);
+}
+
+void
+model_hndl::load_model(int model=0)
+{	
+    //Loads a model.
+    char cwd[BUFF_LEN];
+    char buff[BUFF_LEN];
+
+
+    std::list<model_t>::iterator c_model=l_models.begin();
+    if(model!=0) {
+    	for(int i=0;i<model;i++) {
+    		c_model++;
+    	}
+    }
+
+
+    if ( tuxLoaded == true && cur_model==model) 
+        return;
+    cur_model=model;
+    tuxLoaded = true;
+    initialize_scene_graph();
+
+    if ( getcwd( cwd, BUFF_LEN ) == NULL ) {
+	handle_system_error( 1, "getcwd failed" );
+    }
+    if ( chdir( getparam_data_dir() ) != 0 ) {
+	/* Print a more informative warning since this is a common error */
+	handle_system_error( 
+	    1, "Can't find the etracer data "
+	    "directory.  Please check the\nvalue of `data_dir' in "
+	    "~/.etracer/options and set it to the location where you\n"
+	    "installed the etracer-data files.\n\n"
+	    "Couldn't chdir to %s", getparam_data_dir() );
+	/*
+        handle_system_error( 1, "couldn't chdir to %s", getparam_data_dir() );
+	*/
+    } 
+    
+    
+    //std::cout<<"Loading model "<< (*c_model).name<<std::endl;
+    if ( Tcl_EvalFile( tclInterp, (*c_model).filename.c_str()) == TCL_ERROR ) {
+        handle_error( 1, "error evalating %s/%s: %s\n"
+		      "Please check the value of `data_dir' in ~/.etracer/options "
+		      "and make sure it\npoints to the location of the "
+		      "latest version of the etracer-data files.", 
+		      getparam_data_dir(),(*c_model).filename.c_str(),
+		      Tcl_GetStringResult( tclInterp ) );
+    } 
+    check_assertion( !Tcl_InterpDeleted( tclInterp ),
+		     "Tcl interpreter deleted" );
+
+    if ( chdir( cwd ) != 0 ) {
+	handle_system_error( 1, "couldn't chdir to %s", cwd );
+    } 
+} 
+
 static int
 head_cb ( ClientData cd, Tcl_Interp *ip, int argc, CONST84 char *argv[]) 
 {
@@ -247,7 +261,7 @@ head_cb ( ClientData cd, Tcl_Interp *ip, int argc, CONST84 char *argv[])
         return TCL_ERROR;
     } 
 
-    players[cur_player].Model->tuxHead = string_copy( argv[1] );
+    ModelHndl->tuxHead = string_copy( argv[1] );
 
     return TCL_OK;
 } 
@@ -264,7 +278,7 @@ neck_cb ( ClientData cd, Tcl_Interp *ip,
         return TCL_ERROR;
     } 
 
-    players[cur_player].Model->tuxNeck = string_copy( argv[1] );
+    ModelHndl->tuxNeck = string_copy( argv[1] );
 
     return TCL_OK;
 } 
@@ -280,7 +294,7 @@ root_node_cb ( ClientData cd, Tcl_Interp *ip,
         return TCL_ERROR;
     } 
 
-    players[cur_player].Model->tuxRootNode = string_copy( argv[1] );
+    ModelHndl->tuxRootNode = string_copy( argv[1] );
 
     return TCL_OK;
 } 
@@ -297,7 +311,7 @@ left_shoulder_cb ( ClientData cd, Tcl_Interp *ip,
         return TCL_ERROR;
     } 
 
-    players[cur_player].Model->tuxLeftShoulderJoint = string_copy( argv[1] );
+    ModelHndl->tuxLeftShoulderJoint = string_copy( argv[1] );
 
     return TCL_OK;
 } 
@@ -314,7 +328,7 @@ right_shoulder_cb ( ClientData cd, Tcl_Interp *ip,
         return TCL_ERROR;
     } 
 
-    players[cur_player].Model->tuxRightShoulderJoint = string_copy( argv[1] );
+    ModelHndl->tuxRightShoulderJoint = string_copy( argv[1] );
 
     return TCL_OK;
 } 
@@ -331,7 +345,7 @@ left_hip_cb ( ClientData cd, Tcl_Interp *ip,
         return TCL_ERROR;
     } 
 
-    players[cur_player].Model->tuxLeftHipJoint = string_copy( argv[1] );
+    ModelHndl->tuxLeftHipJoint = string_copy( argv[1] );
 
     return TCL_OK;
 } 
@@ -348,7 +362,7 @@ right_hip_cb ( ClientData cd, Tcl_Interp *ip,
         return TCL_ERROR;
     } 
 
-    players[cur_player].Model->tuxRightHipJoint = string_copy( argv[1] );
+    ModelHndl->tuxRightHipJoint = string_copy( argv[1] );
 
     return TCL_OK;
 } 
@@ -365,7 +379,7 @@ left_knee_cb ( ClientData cd, Tcl_Interp *ip,
         return TCL_ERROR;
     } 
 
-    players[cur_player].Model->tuxLeftKneeJoint = string_copy( argv[1] );
+    ModelHndl->tuxLeftKneeJoint = string_copy( argv[1] );
 
     return TCL_OK;
 } 
@@ -382,7 +396,7 @@ right_knee_cb ( ClientData cd, Tcl_Interp *ip,
         return TCL_ERROR;
     } 
 
-    players[cur_player].Model->tuxRightKneeJoint = string_copy( argv[1] );
+    ModelHndl->tuxRightKneeJoint = string_copy( argv[1] );
 
     return TCL_OK;
 } 
@@ -399,7 +413,7 @@ left_ankle_cb ( ClientData cd, Tcl_Interp *ip,
         return TCL_ERROR;
     } 
 
-    players[cur_player].Model->tuxLeftAnkleJoint = string_copy( argv[1] );
+    ModelHndl->tuxLeftAnkleJoint = string_copy( argv[1] );
 
     return TCL_OK;
 } 
@@ -416,7 +430,7 @@ right_ankle_cb ( ClientData cd, Tcl_Interp *ip,
         return TCL_ERROR;
     } 
 
-    players[cur_player].Model->tuxRightAnkleJoint = string_copy( argv[1] );
+    ModelHndl->tuxRightAnkleJoint = string_copy( argv[1] );
 
     return TCL_OK;
 } 
@@ -433,7 +447,7 @@ tail_cb ( ClientData cd, Tcl_Interp *ip,
         return TCL_ERROR;
     } 
 
-    players[cur_player].Model->tuxTailJoint = string_copy( argv[1] );
+    ModelHndl->tuxTailJoint = string_copy( argv[1] );
 
     return TCL_OK;
 } 
@@ -452,8 +466,8 @@ tux_add_model_cb ( ClientData cd, Tcl_Interp *ip,
     model_t tmp_model;
     tmp_model.name = string_copy( argv[2] );
     tmp_model.filename = string_copy( argv[1] );
-    tmp_model.id = players[cur_player].Model->num_models++;
-    players[cur_player].Model->l_models.push_back(tmp_model);
+    tmp_model.id = ModelHndl->num_models++;
+    ModelHndl->l_models.push_back(tmp_model);
  
     return TCL_OK;
 }

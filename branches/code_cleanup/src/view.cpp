@@ -21,7 +21,7 @@
 
 #include "view.h"
 #include "phys_sim.h"
-#include "player.h"
+#include "model_hndl.h"
 #include "hier.h"
 #include "stuff.h"
 
@@ -113,7 +113,7 @@ pp::Vec3d get_tux_view_pt( Player& plyr )
 
     trans.makeIdentity();
 
-    tux_root_node_name = plyr.Model->get_tux_root_node();
+    tux_root_node_name = ModelHndl->get_tux_root_node();
 
     if ( get_scene_node( tux_root_node_name, &tux_root_node ) != TCL_OK ) {
 	check_assertion(0, "couldn't load tux's root node" );
@@ -322,7 +322,6 @@ void setup_view_matrix( Player& plyr )
     glMultMatrixd( (double *) view_mat.data );
 }
 
-
 /*! 
   Updates camera and sets the view matrix
   \pre     plyr != NULL, plyr has been initialized with position & 
@@ -337,7 +336,6 @@ void setup_view_matrix( Player& plyr )
 */
 void update_view( Player& plyr, double dt )
 {
-//Only for the local player!
     pp::Vec3d view_pt;
     pp::Vec3d view_dir, up_dir, vel_dir, view_vec;
     double ycoord;

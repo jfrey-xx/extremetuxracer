@@ -24,7 +24,6 @@
 #include "course_quad.h"
 
 #include "game_config.h"
-#include "game_mgr.h"
 
 #include "ppgltk/images/image.h"
 
@@ -370,9 +369,7 @@ void load_course( std::string& course )
 			  players[0].view.pos, 
 			  getparam_course_detail_level() );
 
-    for(int i=0;i<gameMgr->numPlayers;i++) {
-    	track_marks_array[i].init_track_marks();
-    }
+    init_track_marks();
 
     course_loaded = true;
 
