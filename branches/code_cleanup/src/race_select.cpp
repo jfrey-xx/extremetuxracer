@@ -420,15 +420,10 @@ RaceSelect::back()
 void
 RaceSelect::start()
 {
-    std::cout<<"mp_startBtn->setHighlight( true );"<<std::endl;
     mp_startBtn->setHighlight( true );
-     std::cout<<"updateRaceData();	"<<std::endl;
 	updateRaceData();	
-	 std::cout<<"loop( 0 );"<<std::endl;
 	loop( 0 );
-	 std::cout<<" set_game_mode( LOADING );"<<std::endl;
     set_game_mode( LOADING );
-    std::cout<<"After."<<std::endl;
 }
 
 
