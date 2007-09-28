@@ -1,0 +1,6 @@
+alignment.o alignment.o: ppgltk/alignment.cpp ppgltk/alignment.h \
+  ppgltk/alg/vec2d.h
+
+ppgltk/alignment.h:
+
+ppgltk/alg/vec2d.h:

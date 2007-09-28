@@ -1,0 +1,3 @@
+color.o color.o: ppgltk/alg/color.cpp ppgltk/alg/color.h
+
+ppgltk/alg/color.h:

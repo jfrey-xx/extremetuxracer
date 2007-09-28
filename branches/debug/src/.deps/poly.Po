@@ -1,0 +1,5 @@
+poly.o poly.o: ppgltk/alg/poly.cpp ppgltk/alg/poly.h ppgltk/alg/vec3d.h
+
+ppgltk/alg/poly.h:
+
+ppgltk/alg/vec3d.h:
