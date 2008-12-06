@@ -73,6 +73,7 @@
 static pp::Vec3d   tux_eye_pts[2];
 static pp::Vec3d   tux_view_pt;
 
+//!This needs to die...
 void set_view_mode( Player& plyr, view_mode_t mode )
 {
     plyr.view.mode = mode;
@@ -313,6 +314,55 @@ void setup_view_matrix( Player& plyr )
     view_mat.data[2][3] = 0;
     
     viewpt_in_view_frame = view_mat.transformPoint( plyr.view.pos );
+    
+    view_mat.data[3][0] = -viewpt_in_view_frame.x;
+    view_mat.data[3][1] = -viewpt_in_view_frame.y;
+    view_mat.data[3][2] = -viewpt_in_view_frame.z;
+    
+    glLoadIdentity();
+    glMultMatrixd( (double *) view_mat.data );
+}
+
+//! New version
+void setup_view_matrix( Racer& racer ) 
+{
+    pp::Vec3d view_x, view_y, view_z;
+    pp::Matrix view_mat;
+    pp::Vec3d viewpt_in_view_frame;
+
+    view_z = -1*racer.view.dir;
+    view_x = racer.view.up^view_z;
+    view_y = view_z^view_x;
+    view_z.normalize();
+    view_x.normalize();
+    view_y.normalize();
+
+    racer.view.inv_view_mat.makeIdentity();
+
+    racer.view.inv_view_mat.data[0][0] = view_x.x;
+    racer.view.inv_view_mat.data[0][1] = view_x.y;
+    racer.view.inv_view_mat.data[0][2] = view_x.z;
+
+    racer.view.inv_view_mat.data[1][0] = view_y.x;
+    racer.view.inv_view_mat.data[1][1] = view_y.y;
+    racer.view.inv_view_mat.data[1][2] = view_y.z;
+
+    racer.view.inv_view_mat.data[2][0] = view_z.x;
+    racer.view.inv_view_mat.data[2][1] = view_z.y;
+    racer.view.inv_view_mat.data[2][2] = view_z.z;
+
+    racer.view.inv_view_mat.data[3][0] = racer.view.pos.x;
+    racer.view.inv_view_mat.data[3][1] = racer.view.pos.y;
+    racer.view.inv_view_mat.data[3][2] = racer.view.pos.z;
+    racer.view.inv_view_mat.data[3][3] = 1;
+    
+    view_mat.transpose(racer.view.inv_view_mat);
+
+    view_mat.data[0][3] = 0;
+    view_mat.data[1][3] = 0;
+    view_mat.data[2][3] = 0;
+    
+    viewpt_in_view_frame = view_mat.transformPoint( racer.view.pos );
     
     view_mat.data[3][0] = -viewpt_in_view_frame.x;
     view_mat.data[3][1] = -viewpt_in_view_frame.y;
@@ -592,3 +642,270 @@ void update_view( Player& plyr, double dt )
 
     setup_view_matrix( plyr );
 }
+
+/*! 
+  Updates camera and sets the view matrix - New version to work with Racer class
+  \pre     plyr != NULL, plyr has been initialized with position & 
+           velocity info., plyr->view.mode has been set
+  \arg \c  plyr pointer to player data
+  \arg \c  dt time step size  
+
+  \return  none
+  \author  jfpatry
+  \date    Created:  2000-08-26
+  \date    Modified: 2000-08-26
+*/
+void update_view( Racer& racer, double timeStep )
+{
+    pp::Vec3d view_pt;
+    pp::Vec3d view_dir, up_dir, vel_dir, view_vec;
+    double ycoord;
+    double course_angle;
+    pp::Vec3d axis;
+    pp::Matrix rot_mat;
+    pp::Vec3d y_vec;
+    pp::Vec3d mz_vec;
+    pp::Vec3d vel_proj;
+    pp::Quat rot_quat;
+    double speed;
+    pp::Vec3d vel_cpy;
+    double time_constant_mult;
+
+    vel_cpy = racer.velocity();
+    speed = vel_cpy.normalize();
+
+    time_constant_mult = 1.0 /
+	MIN( 1.0, 
+	     MAX( 0.0, 
+		  ( speed - NO_INTERPOLATION_SPEED ) /
+		  ( BASELINE_INTERPOLATION_SPEED - NO_INTERPOLATION_SPEED )));
+
+    up_dir = pp::Vec3d( 0, 1, 0 );
+
+    vel_dir = racer.velocity();
+    vel_dir.normalize();
+
+    course_angle = get_course_angle();
+
+    switch( racer.view.mode ) {
+
+    case BEHIND: // "Camera-on-a-string" mode
+    {
+	    /* Construct vector from player to camera */
+	    view_vec = pp::Vec3d( 0, 
+			    sin( ANGLES_TO_RADIANS( 
+			        course_angle -
+			        CAMERA_ANGLE_ABOVE_SLOPE + 
+			        PLAYER_ANGLE_IN_CAMERA ) ),
+			    cos( ANGLES_TO_RADIANS( 
+			        course_angle -
+			        CAMERA_ANGLE_ABOVE_SLOPE + 
+			        PLAYER_ANGLE_IN_CAMERA ) ) );
+
+      view_vec = CAMERA_DISTANCE*view_vec;
+
+      y_vec = pp::Vec3d( 0.0, 1.0, 0.0 );
+      mz_vec = pp::Vec3d( 0.0, 0.0, -1.0 );
+      vel_proj = projectIntoPlane( y_vec, vel_dir );
+
+      vel_proj.normalize();
+
+      /* Rotate view_vec so that it places the camera behind player */
+      rot_quat = pp::Quat( mz_vec, vel_proj );
+
+      view_vec = rot_quat.rotate(view_vec);
+
+
+      /* Construct view point */
+      view_pt = racer.position() - view_vec;
+
+      /* Make sure view point is above terrain */
+      ycoord = find_y_coord( view_pt.x, view_pt.z );
+
+      if ( view_pt.y < ycoord + MIN_CAMERA_HEIGHT ) {
+          view_pt.y = ycoord + MIN_CAMERA_HEIGHT;
+      } 
+
+      /* Interpolate view point */
+      if ( racer.view.initialized ) {
+        /* Interpolate twice to get a second-order filter */
+        for (int i = 0; i < 2; i++) {
+          view_pt = 
+              interpolate_view_pos( racer.position(), racer.position(), 
+		              MAX_CAMERA_PITCH, racer.view.pos, 
+		              view_pt, CAMERA_DISTANCE, timeStep,
+		              BEHIND_ORBIT_TIME_CONSTANT * 
+		              time_constant_mult );
+        }
+      }
+
+      /* Make sure interpolated view point is above terrain */
+            ycoord = find_y_coord( view_pt.x, view_pt.z );
+
+            if ( view_pt.y < ycoord + ABSOLUTE_MIN_CAMERA_HEIGHT ) {
+                view_pt.y = ycoord + ABSOLUTE_MIN_CAMERA_HEIGHT;
+            } 
+
+      /* Construct view direction */
+      view_vec = view_pt - racer.position();
+
+      axis = y_vec^view_vec;
+      axis.normalize();
+
+      rot_mat.makeRotationAboutVector( axis,
+				         PLAYER_ANGLE_IN_CAMERA );
+      view_dir = -1.0*rot_mat.transformVector( view_vec );
+
+      /* Interpolate orientation of camera */
+      if ( racer.view.initialized ) {
+        /* Interpolate twice to get a second-order filter */
+        for (int i = 0; i < 2; i++) {
+          interpolate_view_frame( racer.view.up, racer.view.dir,
+			          &up_dir, &view_dir, timeStep,
+			          BEHIND_ORIENT_TIME_CONSTANT );
+          up_dir = pp::Vec3d( 0.0, 1.0, 0.0 );
+        }
+      }
+
+      break;
+    } //END case BEHIND:
+
+    case FOLLOW: 
+    {
+	    /* Camera follows player (above and behind) */
+
+	    up_dir = pp::Vec3d( 0, 1, 0 );
+
+	    /* Construct vector from player to camera */
+	    view_vec = pp::Vec3d( 0, 
+				    sin( ANGLES_TO_RADIANS( 
+				        course_angle -
+				        CAMERA_ANGLE_ABOVE_SLOPE +
+				        PLAYER_ANGLE_IN_CAMERA ) ),
+				    cos( ANGLES_TO_RADIANS( 
+				        course_angle -
+				        CAMERA_ANGLE_ABOVE_SLOPE + 
+				        PLAYER_ANGLE_IN_CAMERA ) ) );
+	    view_vec = CAMERA_DISTANCE*view_vec;
+
+	    y_vec = pp::Vec3d( 0.0, 1.0, 0.0 );
+	    mz_vec = pp::Vec3d( 0.0, 0.0, -1.0 );
+	    vel_proj = projectIntoPlane( y_vec, vel_dir );
+
+	    vel_proj.normalize();
+
+	    /* Rotate view_vec so that it places the camera behind player */
+	    rot_quat = pp::Quat( mz_vec, vel_proj );
+
+	    view_vec = rot_quat.rotate( view_vec );
+
+
+	    /* Construct view point */
+	    view_pt = racer.position() + view_vec;
+
+
+	    /* Make sure view point is above terrain */
+      ycoord = find_y_coord( view_pt.x, view_pt.z );
+
+      if ( view_pt.y < ycoord + MIN_CAMERA_HEIGHT ) {
+          view_pt.y = ycoord + MIN_CAMERA_HEIGHT;
+	    }
+
+	    /* Interpolate view point */
+	    if ( racer.view.initialized ){
+        /* Interpolate twice to get a second-order filter */
+        for (int i = 0; i < 2; i++){
+	        view_pt = 
+	            interpolate_view_pos( racer.view.plyr_pos, racer.position(), 
+				          MAX_CAMERA_PITCH, racer.view.pos, 
+				          view_pt, CAMERA_DISTANCE, timeStep,
+				          FOLLOW_ORBIT_TIME_CONSTANT *
+				          time_constant_mult );
+        }
+	    }
+
+	    /* Make sure interpolate view point is above terrain */
+      ycoord = find_y_coord( view_pt.x, view_pt.z );
+
+      if ( view_pt.y < ycoord + ABSOLUTE_MIN_CAMERA_HEIGHT ) {
+          view_pt.y = ycoord + ABSOLUTE_MIN_CAMERA_HEIGHT;
+      } 
+
+	    /* Construct view direction */
+	    view_vec = view_pt - racer.position();
+	
+	    axis = y_vec^view_vec;
+	    axis.normalize();
+	
+	    rot_mat.makeRotationAboutVector( axis, PLAYER_ANGLE_IN_CAMERA );
+	    view_dir = -1.0*rot_mat.transformVector( view_vec );
+
+	    /* Interpolate orientation of camera */
+	    if ( racer.view.initialized ){
+        /* Interpolate twice to get a second-order filter */
+        for (int i = 0; i < 2; i++){
+	        interpolate_view_frame( racer.view.up, racer.view.dir,
+				        &up_dir, &view_dir, timeStep,
+				        FOLLOW_ORIENT_TIME_CONSTANT );
+	        up_dir = pp::Vec3d( 0.0, 1.0, 0.0 );
+        }
+	    }
+
+      break;
+    } //END case FOLLOW:
+
+    case ABOVE:
+    {
+	    /* Camera always uphill of player */
+
+	    up_dir = pp::Vec3d( 0, 1, 0 );
+
+
+	    /* Construct vector from player to camera */
+	    view_vec = pp::Vec3d( 0, 
+				    sin( ANGLES_TO_RADIANS( 
+				        course_angle - 
+				        CAMERA_ANGLE_ABOVE_SLOPE+
+				        PLAYER_ANGLE_IN_CAMERA ) ),
+				    cos( ANGLES_TO_RADIANS( 
+				        course_angle - 
+				        CAMERA_ANGLE_ABOVE_SLOPE+ 
+				        PLAYER_ANGLE_IN_CAMERA ) ) );
+	    view_vec = CAMERA_DISTANCE*view_vec;
+
+	
+	    /* Construct view point */
+	    view_pt = racer.position() + view_vec;
+
+
+	    /* Make sure view point is above terrain */
+      ycoord = find_y_coord( view_pt.x, view_pt.z );
+
+      if ( view_pt.y < ycoord + MIN_CAMERA_HEIGHT ) {
+          view_pt.y = ycoord + MIN_CAMERA_HEIGHT;
+	    }
+
+	    /* Construct view direction */
+	    view_vec = view_pt - racer.position();
+
+	    rot_mat.makeRotation( PLAYER_ANGLE_IN_CAMERA, 'x' );
+	    view_dir = -1.0*rot_mat.transformVector( view_vec );
+
+      break;
+    }
+
+    default:
+      //shouldn't ever get here, because all of the valid views should be taken care of.
+      code_not_reached();
+    } 
+
+    /* Create view matrix */
+    racer.view.pos = view_pt;
+    racer.view.dir = view_dir;
+    racer.view.up = up_dir;
+    racer.view.plyr_pos = racer.position();
+    racer.view.initialized = true;
+
+    setup_view_matrix( racer );
+}
+

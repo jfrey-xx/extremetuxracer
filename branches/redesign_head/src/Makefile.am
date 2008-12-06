@@ -99,6 +99,8 @@ etracer_SOURCES =				\
 	highscore.h				\
 	hud.cpp					\
 	hud.h					\
+  humanracer.cpp \
+  humanracer.h \
 	intro.cpp				\
 	intro.h					\
 	joystick.cpp				\
@@ -133,6 +135,8 @@ etracer_SOURCES =				\
 	race_select.h				\
 	event_race_select.cpp			\
 	event_race_select.h			\
+  racer.cpp \
+  racer.h \
 	racing.cpp				\
 	racing.h				\
 	render_util.cpp				\

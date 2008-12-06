@@ -40,7 +40,7 @@
 
 #include "game_mgr.h"
 
-
+#include <iostream>
 
 /*
  * Constants
@@ -570,30 +570,77 @@ void get_surface_type( float x, float z, float weights[] )
     }
 } 
 
-pp::Plane get_local_course_plane( pp::Vec3d pt )
+//! Returns the plane which represents the slope of the course at a particular point
+pp::Plane get_local_course_plane( pp::Vec3d point )
 {
-    pp::Plane plane;
+  pp::Plane plane;
 
-    pt.y = find_y_coord( pt.x, pt.z );
+  point.y = find_y_coord( point.x, point.z );
 
-    plane.nml = find_course_normal( pt.x, pt.z );
-    plane.d = -( plane.nml.x * pt.x + 
-		 plane.nml.y * pt.y +
-		 plane.nml.z * pt.z );
+  plane.nml = find_course_normal( point.x, point.z );
+  plane.d = -( plane.nml.x * point.x + 
+  plane.nml.y * point.y +
+  plane.nml.z * point.z );
 
-    return plane;
+  return plane;
 }
 
+/* When the player is paddling, paddle_time is set to game_time.  When the player
+releases the key, is_paddling is left true until PADDLING_DURATION has elapsed.
+This function then turns it off.  This allows Tux to make whole, smooth paddling
+motions, rather than jumping to glide position partway through a stroke.
+*/
+//! Stops paddling a short time after the player releases the paddle key
 static void update_paddling( Player& plyr )
 {
-    if ( plyr.control.is_paddling ) {
+  if ( plyr.control.is_paddling ) {
 		if ( gameMgr->time - plyr.control.paddle_time >= PADDLING_DURATION ) {
-		    print_debug( DEBUG_CONTROL, "paddling off" );
-		    plyr.control.is_paddling = false;
+	    //print_debug( DEBUG_CONTROL, "paddling off" );
+	    plyr.control.is_paddling = false;
 		}
-    }
+  }
 }
 
+pp::Vec3d limitPosition( pp::Vec3d new_pos )
+{
+    char *tuxRoot;
+    float playWidth, playLength;
+    float courseWidth, courseLength;
+    float boundaryWidth;
+    float disp_y;
+
+    get_play_dimensions( &playWidth, &playLength );
+    get_course_dimensions( &courseWidth, &courseLength );
+    boundaryWidth = ( courseWidth - playWidth ) / 2; 
+
+
+    if ( new_pos.x < boundaryWidth ) {
+        new_pos.x = boundaryWidth;
+    } else if ( new_pos.x > courseWidth - boundaryWidth ) {
+        new_pos.x = courseWidth - boundaryWidth;
+    } 
+
+    if ( new_pos.z > 0 ) {
+        new_pos.z = 0;
+    } else if ( -new_pos.z >= playLength ) {
+        new_pos.z = -playLength;
+        set_game_mode( GAME_OVER );
+    } 
+
+
+
+    //what does this do?
+    disp_y = new_pos.y + TUX_Y_CORRECTION_ON_STOMACH; 
+
+    tuxRoot = ModelHndl->get_tux_root_node();
+    reset_scene_node( tuxRoot );
+    translate_scene_node( tuxRoot, 
+			  pp::Vec3d( new_pos.x, disp_y, new_pos.z ) );
+
+  return(new_pos);
+}
+
+//! The new version is above.  This is only so we don't break everything all at once.
 void set_tux_pos( Player& plyr, pp::Vec3d new_pos )
 {
     char *tuxRoot;
@@ -886,33 +933,32 @@ static void adjust_for_tree_collision( Player& plyr,
 }
 
 /*
- * Adjusts velocity so that his speed doesn't drop below the minimum 
+ * Adjusts velocity so that Tux's speed doesn't drop below the minimum 
  * speed
  */
-double adjust_velocity( pp::Vec3d *vel, pp::Vec3d pos, 
-			  pp::Plane surf_plane, float dist_from_surface )
+double forceMinimumVelocity( pp::Vec3d *velocity, pp::Plane surf_plane)
 {
     pp::Vec3d surf_nml;
     float speed;
 
     surf_nml = surf_plane.nml;
 
-    speed = vel->normalize();
+    speed = velocity->normalize();
 
     if ( speed < EPS )
     {
-	if ( fabs( surf_nml.x ) + fabs( surf_nml.z ) > EPS ) {
-	    *vel = projectIntoPlane( 
-		surf_nml, pp::Vec3d( 0.0, -1.0, 0.0 ) );
-	    vel->normalize();
-	} else {
-	    *vel = pp::Vec3d( 0.0, 0.0, -1.0 );
-	}
+	    if ( fabs( surf_nml.x ) + fabs( surf_nml.z ) > EPS ) {
+	        *velocity = projectIntoPlane( 
+		    surf_nml, pp::Vec3d( 0.0, -1.0, 0.0 ) );
+	        velocity->normalize();
+	    } else {
+	        *velocity = pp::Vec3d( 0.0, 0.0, -1.0 );
+	    }
     }
 
     speed = MAX( get_min_tux_speed(), speed );
 
-    *vel = speed*(*vel);
+    *velocity = speed*(*velocity);
     return speed;
 }
 
@@ -925,6 +971,19 @@ void adjust_position( pp::Vec3d *pos, pp::Plane surf_plane,
 	*pos = ( *pos+ (-MAX_SURFACE_PENETRATION - dist_from_surface)* surf_plane.nml);
     }
     return;
+}
+
+pp::Vec3d enforceMaxPenetration(pp::Vec3d position, pp::Plane surfacePlane)
+{
+  float distanceFromSurface = surfacePlane.distance( position );
+
+  //If tux is below the surface
+  if (distanceFromSurface < -MAX_SURFACE_PENETRATION) {
+    //Add a vector normal to the surface with sufficient magnitude to put him within the
+    //acceptable penetration limit
+    position = ( position + (-distanceFromSurface - MAX_SURFACE_PENETRATION)* surfacePlane.nml);
+  }
+  return position;
 }
 
 static pp::Vec3d adjust_tux_zvec_for_roll( Player& plyr, 
@@ -949,6 +1008,39 @@ static pp::Vec3d adjust_tux_zvec_for_roll( Player& plyr,
     return rot_mat.transformVector(zvec);
 }
 
+
+static pp::Vec3d adjust_surf_nml_for_roll( Racer& racer, 
+					  pp::Vec3d vel, 
+					  float fric_coeff,
+					  pp::Vec3d nml )
+{
+    pp::Matrix rot_mat; 
+    float angle;
+    float speed;
+    float roll_angle;
+
+    speed = vel.normalize();
+
+    vel = projectIntoPlane( nml, vel );
+
+    vel.normalize();
+    if ( racer.braking() ) {
+	    roll_angle = BRAKING_ROLL_ANGLE;
+    } else {
+	    roll_angle = MAX_ROLL_ANGLE;
+    }
+
+	angle = racer.turnFactor() * roll_angle *
+	MIN( 1.0, MAX(0.0, fric_coeff)/IDEAL_ROLL_FRIC_COEFF )
+	* MIN(1.0, MAX(0.0,speed-MIN_TUX_SPEED)/
+	      (IDEAL_ROLL_SPEED-MIN_TUX_SPEED));
+    
+    rot_mat.makeRotationAboutVector( vel, angle );
+
+    return rot_mat.transformVector(nml);
+}
+
+//! Old version
 static pp::Vec3d adjust_surf_nml_for_roll( Player& plyr, 
 					  pp::Vec3d vel, 
 					  float fric_coeff,
@@ -981,7 +1073,78 @@ static pp::Vec3d adjust_surf_nml_for_roll( Player& plyr,
     return rot_mat.transformVector(nml);
 }
 
+void adjust_orientation( Racer& racer, float dtime, 
+			 pp::Vec3d pos, pp::Vec3d vel,
+			 float dist_from_surface, pp::Vec3d surf_nml )
+{
+    pp::Vec3d new_x, new_y, new_z; 
+    pp::Matrix inv_cob_mat;
+    pp::Matrix rot_mat;
+    pp::Quat new_orient;
+    char* tux_root;
+    float time_constant;
+    static pp::Vec3d minus_z_vec(0., 0., -1.);
+    static pp::Vec3d y_vec(0., 1., 0.);
 
+    if ( dist_from_surface > 0 ) {
+	    new_y = 1.*vel;
+	    new_y.normalize();
+	    new_z = projectIntoPlane( new_y, pp::Vec3d(0., -1., 0.) );
+	    new_z.normalize();
+    //	new_z = adjust_tux_zvec_for_roll( racer, vel, new_z );
+    } else { 
+	    new_z = -1.*surf_nml;
+	    //new_z = adjust_tux_zvec_for_roll( racer, vel, new_z );
+	    new_y = projectIntoPlane( surf_nml,1.*vel);
+	    new_y.normalize();
+    }
+
+    new_x = new_y^new_z;
+
+	{
+		pp::Matrix cob_mat;    
+		pp::Matrix::makeChangeOfBasisMatrix( cob_mat, inv_cob_mat, new_x, new_y, new_z );
+	    new_orient = pp::Quat(cob_mat);
+	}
+    if ( !racer.orientation_initialized ) {
+	racer.orientation_initialized = true;
+	racer.orientation = new_orient;
+    }
+
+    time_constant = dist_from_surface > 0
+	? TUX_ORIENTATION_AIRBORNE_TIME_CONSTANT
+	: TUX_ORIENTATION_TIME_CONSTANT;
+
+    racer.orientation = pp::Quat::interpolate( 
+	racer.orientation, new_orient, 
+	MIN( dtime / time_constant, 1.0 ) );
+
+    racer.plane_nml = racer.orientation.rotate( minus_z_vec );
+    racer.direction = racer.orientation.rotate( y_vec );
+
+    pp::Matrix cob_mat( racer.orientation );
+
+
+    /* Trick rotations
+    new_y = pp::Vec3d( cob_mat.data[1][0], cob_mat.data[1][1], cob_mat.data[1][2] ); 
+    rot_mat.makeRotationAboutVector( new_y, 
+				       ( racer.control.barrel_roll_factor * 360 ) );
+    cob_mat=rot_mat*cob_mat;
+    new_x = pp::Vec3d( cob_mat.data[0][0], cob_mat.data[0][1], cob_mat.data[0][2] ); 
+    rot_mat.makeRotationAboutVector( new_x, 
+				       racer.control.flip_factor * 360 );
+    cob_mat=rot_mat*cob_mat;
+    */
+
+
+    inv_cob_mat.transpose(cob_mat);
+
+    tux_root = ModelHndl->get_tux_root_node();
+    transform_scene_node( tux_root, cob_mat, inv_cob_mat ); 
+}
+
+
+//! Old version so we don't break things
 void adjust_orientation( Player& plyr, float dtime, 
 			 pp::Vec3d pos, pp::Vec3d vel,
 			 float dist_from_surface, pp::Vec3d surf_nml )
@@ -1242,7 +1405,7 @@ static pp::Vec3d calc_spring_force( float compression, pp::Vec3d vel,
 }
 
 
-static pp::Vec3d calc_net_force( Player& plyr, pp::Vec3d pos, 
+static pp::Vec3d calc_net_force( Racer& racer, pp::Vec3d pos, 
 				pp::Vec3d vel )
 {
     pp::Vec3d nml_f;      /* normal force */
@@ -1280,9 +1443,9 @@ static pp::Vec3d calc_net_force( Player& plyr, pp::Vec3d pos,
 	*/
 	surf_fric_coeff += surf_weights[i] * terrain_texture[i].friction;
     }
-    surf_nml = adjust_surf_nml_for_roll( plyr, vel, surf_fric_coeff,
+    surf_nml = adjust_surf_nml_for_roll( racer, vel, surf_fric_coeff,
 					 orig_surf_nml );
-    
+
     comp_depth = 0;
     for (i=0; i<num_terrains; i++) {
 	comp_depth += surf_weights[i] * get_compression_depth(i);
@@ -1294,9 +1457,9 @@ static pp::Vec3d calc_net_force( Player& plyr, pp::Vec3d pos,
     dist_from_surface = surf_plane.distance( pos );
 
     if ( dist_from_surface <= 0 ) {
-	plyr.airborne = false;
+	    racer.airborne = false;
     } else {
-	plyr.airborne = true;
+	    racer.airborne = true;
     }
 
     /*
@@ -1317,6 +1480,7 @@ static pp::Vec3d calc_net_force( Player& plyr, pp::Vec3d pos,
     }
 
     /* Check if player is trying to jump */
+/*
     if ( plyr.control.begin_jump == true ) {
 	plyr.control.begin_jump = false;
 	if ( dist_from_surface <= 0 ) {
@@ -1328,7 +1492,7 @@ static pp::Vec3d calc_net_force( Player& plyr, pp::Vec3d pos,
     }
 
 
-    /* Apply jump force in up direction for JUMP_FORCE_DURATION */
+    // Apply jump force in up direction for JUMP_FORCE_DURATION
     if ( ( plyr.control.jumping ) &&
 	 ( gameMgr->time - plyr.control.jump_start_time < 
 	   JUMP_FORCE_DURATION ) ) 
@@ -1344,9 +1508,9 @@ static pp::Vec3d calc_net_force( Player& plyr, pp::Vec3d pos,
 	jump_f = pp::Vec3d( 0, 0, 0 );
 	plyr.control.jumping = false;
     }
-
+*/
     /* Use the unclamped normal force for damage calculation purposes */
-    plyr.normal_force = unclamped_nml_f;
+    racer.normal_force = unclamped_nml_f;
 
     /* 
      * Calculate frictional force
@@ -1368,7 +1532,7 @@ static pp::Vec3d calc_net_force( Player& plyr, pp::Vec3d pos,
 	/*
 	 * Adjust friction for steering
 	 */
-	steer_angle = plyr.control.turn_fact * MAX_TURN_ANGLE;
+	steer_angle = racer.turnFactor() * MAX_TURN_ANGLE;
 
 	if ( fabs( fric_f_mag * sin( ANGLES_TO_RADIANS( steer_angle ) ) ) >
 	     MAX_TURN_PERPENDICULAR_FORCE ) 
@@ -1378,7 +1542,7 @@ static pp::Vec3d calc_net_force( Player& plyr, pp::Vec3d pos,
 		//	     "turning" );
 	    steer_angle = RADIANS_TO_ANGLES( 
 		asin( MAX_TURN_PERPENDICULAR_FORCE / fric_f_mag ) ) * 
-		plyr.control.turn_fact / fabs( plyr.control.turn_fact );
+		racer.turnFactor() / fabs( racer.turnFactor() );
 	}
 	fric_rot_mat.makeRotationAboutVector( orig_surf_nml, steer_angle );
 	fric_f = fric_rot_mat.transformVector( fric_f );
@@ -1388,7 +1552,7 @@ static pp::Vec3d calc_net_force( Player& plyr, pp::Vec3d pos,
 	/*
 	 * Calculate braking force
 	 */
-	if ( speed > get_min_tux_speed() && plyr.control.is_braking ) {
+	if ( speed > get_min_tux_speed() && racer.braking() ) {
 	    brake_f = (surf_fric_coeff * BRAKE_FORCE)*fric_dir; 
 	} else {
 	    brake_f = pp::Vec3d( 0., 0., 0. );
@@ -1407,11 +1571,11 @@ static pp::Vec3d calc_net_force( Player& plyr, pp::Vec3d pos,
     /*
      * Calculate force from paddling
      */
-    update_paddling( plyr );
-    if ( plyr.control.is_paddling ) {
-	if ( plyr.airborne ) {
+//    update_paddling( plyr );
+    if ( racer.paddling() ) {
+	if ( racer.airborne ) {
 	    paddling_f = pp::Vec3d( 0, 0, -TUX_MASS * EARTH_GRAV / 4.0 );
-	    paddling_f = plyr.orientation.rotate( paddling_f );
+	    paddling_f = racer.orientation.rotate( paddling_f );
 	} else {
 	    paddling_f = ( 
 		-1 * MIN( MAX_PADDLING_FORCE,  
@@ -1434,6 +1598,7 @@ static pp::Vec3d calc_net_force( Player& plyr, pp::Vec3d pos,
     return net_force;
 }
 
+/* Enforces maximums and minimums for the timestep. */
 static float adjust_time_step_size( float h, pp::Vec3d vel )
 {
     float speed;
@@ -1451,7 +1616,7 @@ static float adjust_time_step_size( float h, pp::Vec3d vel )
  * Solves the system of ordinary differential equations governing Tux's 
  * movement.  Based on Matlab's ode23.m, (c) The MathWorks, Inc.
  */
-void solve_ode_system( Player& plyr, float dtime ) 
+void solve_ode_system( Racer& racer, float dtime ) 
 {
     float t0, t, tfinal;
     ode_data_t *x, *y, *z, *vx, *vy, *vz; /* store estimates of derivs */
@@ -1467,35 +1632,45 @@ void solve_ode_system( Player& plyr, float dtime )
     pp::Vec3d saved_vel, saved_f;
     float pos_err[3], vel_err[3], tot_pos_err, tot_vel_err;
     float err=0, tol=0;
-    int i;
+//moved below    int i;
 
-    /* Select a solver */
-    switch ( getparam_ode_solver() ) {
-    case EULER:
-	solver = new_euler_solver();
-	break;
-    case ODE23:
-	solver = new_ode23_solver();
-	break;
-    case ODE45:
-	solver = new_ode45_solver();
-	break;
-    default:
-	setparam_ode_solver( ODE23 );
-	solver = new_ode23_solver();
+    // Select a solver.  This is set in the configuration file.
+    // Euler is the fastest but least accurate, while Runge-Kutta(4,5) is
+    // the slowest but most accurate. (At least that's what the configuration file says)
+    switch (getparam_ode_solver())
+    {
+      case EULER:
+	      solver = new_euler_solver();
+	      break;
+      case ODE23:
+	      solver = new_ode23_solver();
+	      break;
+      case ODE45:
+	      solver = new_ode45_solver();
+	      break;
+      default:
+	      setparam_ode_solver( ODE23 );
+	      solver = new_ode23_solver();
     }
+
+/* We guess a value for h, then run the solver until the error is within the acceptable bounds.
+
+*/
 
     /* Select an initial time step */
-    h = ode_time_step;
+    h = ode_time_step; //ode_time_step is set at the bottom of the loop.
 
+    //If we have a bogus time step, fix it
+    //What would happen that we get a bogus timestep?
     if ( h < 0 || solver.estimate_error == NULL ) {
-	h = adjust_time_step_size( dtime, plyr.vel );
+	    h = adjust_time_step_size( dtime, racer.velocity() );
     }
 
-    t0 = 0;
+//    t0 = 0;
+    t = 0;//t0;
+
     tfinal = dtime;
 
-    t = t0;
 
     /* Create variables to store derivative estimates & other data */
     x  = solver.new_ode_data();
@@ -1506,196 +1681,212 @@ void solve_ode_system( Player& plyr, float dtime )
     vz = solver.new_ode_data();
 
     /* initialize state */
-    new_pos = plyr.pos;
-    new_vel = plyr.vel;
-    new_f   = plyr.net_force;
+    new_pos = racer.position();
+    new_vel = racer.velocity();
+    new_f   = racer.net_force;
 
     /* loop until we've integrated from t0 to tfinal */
     while (!done) {
 
-	if ( t >= tfinal ) {
-	    print_warning( CRITICAL_WARNING, 
-			   "t >= tfinal in solve_ode_system()" );
-	    break;
-	}
-
-	/* extend h by up to 10% to reach tfinal */
-	if ( 1.1 * h > tfinal - t ) {
-	    h = tfinal-t;
-	    check_assertion( h >= 0., "integrated past tfinal" );
-	    done = true;
-	}
-
-        print_debug( DEBUG_ODE, "h: %g", h );
-
-	saved_pos = new_pos;
-	saved_vel = new_vel;
-	saved_f = new_f;
-
-	/* Loop until error is acceptable */
-	failed = false;
-
-	for (;;) {
-
-	    /* Store initial conditions */
-	    solver.init_ode_data( x, new_pos.x, h );
-	    solver.init_ode_data( y, new_pos.y, h );
-	    solver.init_ode_data( z, new_pos.z, h );
-	    solver.init_ode_data( vx, new_vel.x, h );
-	    solver.init_ode_data( vy, new_vel.y, h );
-	    solver.init_ode_data( vz, new_vel.z, h );
-
-
-	    /* We assume that the first estimate in all ODE solvers is equal 
-	       to the final value of the last iteration */
-	    solver.update_estimate( x, 0, new_vel.x );
-	    solver.update_estimate( y, 0, new_vel.y );
-	    solver.update_estimate( z, 0, new_vel.z );
-	    solver.update_estimate( vx, 0, new_f.x / TUX_MASS );
-	    solver.update_estimate( vy, 0, new_f.y / TUX_MASS );
-	    solver.update_estimate( vz, 0, new_f.z / TUX_MASS );
-
-	    /* Update remaining estimates */
-	    for ( i=1; i < solver.num_estimates(); i++ ) {
-		new_pos.x = solver.next_val( x, i );
-		new_pos.y = solver.next_val( y, i );
-		new_pos.z = solver.next_val( z, i );
-		new_vel.x = solver.next_val( vx, i );
-		new_vel.y = solver.next_val( vy, i );
-		new_vel.z = solver.next_val( vz, i );
-
-		solver.update_estimate( x, i, new_vel.x );
-		solver.update_estimate( y, i, new_vel.y );
-		solver.update_estimate( z, i, new_vel.z );
-
-		new_f = calc_net_force( plyr, new_pos, new_vel );
-
-		solver.update_estimate( vx, i, new_f.x / TUX_MASS );
-		solver.update_estimate( vy, i, new_f.y / TUX_MASS );
-		solver.update_estimate( vz, i, new_f.z / TUX_MASS );
+      // ?Should never get here, because of the if statement below.
+	    if ( t >= tfinal ) {
+	        print_warning( CRITICAL_WARNING, "t >= tfinal in solve_ode_system()" ); //compiler warning
+	        break;
 	    }
 
-	    /* Get final values */
-	    new_pos.x = solver.final_estimate( x );
-	    new_pos.y = solver.final_estimate( y );
-	    new_pos.z = solver.final_estimate( z );
+      // If h is close to or more than (tfinal - t), i.e, the time left in our integration,
+      // then set h so that it will use that exact amount of time.
+	    if ( 1.1 * h > tfinal - t ) {
+	        h = tfinal-t;
+	        check_assertion( h >= 0., "integrated past tfinal" );
+	        done = true; // The next integration step will complete the integration, and we'll be done.
+	    }
 
-	    new_vel.x = solver.final_estimate( vx );
-	    new_vel.y = solver.final_estimate( vy );
-	    new_vel.z = solver.final_estimate( vz );
+      print_debug( DEBUG_ODE, "h: %g", h );  //compiler warning
 
-	    /* If the current solver can provide error estimates, update h
-	       based on the error, and re-evaluate this step if the error is 
-	       too large  */
-	    if ( solver.estimate_error != NULL ) {
+      //Save the position, velocity and net force for later
+	    saved_pos = new_pos;
+	    saved_vel = new_vel;
+	    saved_f = new_f;
 
-		/* Calculate the error */
-		pos_err[0] = solver.estimate_error( x );
-		pos_err[1] = solver.estimate_error( y );
-		pos_err[2] = solver.estimate_error( z );
+	    // Loop until error is acceptable
+	    failed = false;
 
-		vel_err[0] = solver.estimate_error( vx );
-		vel_err[1] = solver.estimate_error( vy );
-		vel_err[2] = solver.estimate_error( vz );
+	    for (;;){
 
-		tot_pos_err = 0.;
-		tot_vel_err = 0.;
-		for ( i=0; i<3; i++ ) {
-		    pos_err[i] *= pos_err[i];
-		    tot_pos_err += pos_err[i];
-		    vel_err[i] *= vel_err[i];
-		    tot_vel_err += vel_err[i];
-		}
-		tot_pos_err = sqrt( tot_pos_err );
-		tot_vel_err = sqrt( tot_vel_err );
+        /* Store initial conditions */
+        solver.init_ode_data( x, new_pos.x, h );
+        solver.init_ode_data( y, new_pos.y, h );
+        solver.init_ode_data( z, new_pos.z, h );
+        solver.init_ode_data( vx, new_vel.x, h );
+        solver.init_ode_data( vy, new_vel.y, h );
+        solver.init_ode_data( vz, new_vel.z, h );
 
-                print_debug( DEBUG_ODE, "pos_err: %g, vel_err: %g", 
-			     tot_pos_err, tot_vel_err );
 
-		if ( tot_pos_err / MAX_POSITION_ERROR >
-		     tot_vel_err / MAX_VELOCITY_ERROR )
-		{
-		    err = tot_pos_err;
-		    tol = MAX_POSITION_ERROR;
-		} else {
-		    err = tot_vel_err;
-		    tol = MAX_VELOCITY_ERROR;
-		}
+        /* We assume that the first estimate in all ODE solvers is equal 
+           to the final value of the last iteration */
+        solver.update_estimate( x, 0, new_vel.x );
+        solver.update_estimate( y, 0, new_vel.y );
+        solver.update_estimate( z, 0, new_vel.z );
+        solver.update_estimate( vx, 0, new_f.x / TUX_MASS );
+        solver.update_estimate( vy, 0, new_f.y / TUX_MASS );
+        solver.update_estimate( vz, 0, new_f.z / TUX_MASS );
 
-		/* Update h based on error */
-		if (  err > tol  && h > MIN_TIME_STEP + EPS  )
-		{
-		    done = false;
-		    if ( !failed ) {
-			failed = true;
-			h *=  MAX( 0.5, 0.8 *
-				   pow( tol/err, 
-					float(solver.time_step_exponent()) ) );
-		    } else {
-			h *= 0.5;
-		    }
+        /* Update remaining estimates */
+        for (int i = 1; i < solver.num_estimates(); i++ ) {
+		      new_pos.x = solver.next_val( x, i );
+		      new_pos.y = solver.next_val( y, i );
+		      new_pos.z = solver.next_val( z, i );
+		      new_vel.x = solver.next_val( vx, i );
+		      new_vel.y = solver.next_val( vy, i );
+		      new_vel.z = solver.next_val( vz, i );
 
-		    h = adjust_time_step_size( h, saved_vel );
+		      solver.update_estimate( x, i, new_vel.x );
+		      solver.update_estimate( y, i, new_vel.y );
+		      solver.update_estimate( z, i, new_vel.z );
 
-		    new_pos = saved_pos;
-		    new_vel = saved_vel;
-		    new_f = saved_f;
+		      new_f = calc_net_force( racer, new_pos, new_vel );
+
+		      solver.update_estimate( vx, i, new_f.x / TUX_MASS );
+		      solver.update_estimate( vy, i, new_f.y / TUX_MASS );
+		      solver.update_estimate( vz, i, new_f.z / TUX_MASS );
+        }
+
+        /* Get final values */
+        new_pos.x = solver.final_estimate( x );
+        new_pos.y = solver.final_estimate( y );
+        new_pos.z = solver.final_estimate( z );
+
+        new_vel.x = solver.final_estimate( vx );
+        new_vel.y = solver.final_estimate( vy );
+        new_vel.z = solver.final_estimate( vz );
+
+        /* If the current solver can provide error estimates, update h
+           based on the error, and re-evaluate this step if the error is 
+           too large  */
+        if ( solver.estimate_error != NULL ) {
+
+		      /* Calculate the error */
+		      pos_err[0] = solver.estimate_error( x );
+		      pos_err[1] = solver.estimate_error( y );
+		      pos_err[2] = solver.estimate_error( z );
+
+		      vel_err[0] = solver.estimate_error( vx );
+		      vel_err[1] = solver.estimate_error( vy );
+		      vel_err[2] = solver.estimate_error( vz );
+
+		      tot_pos_err = 0.;
+		      tot_vel_err = 0.;
+		      for (int i=0; i<3; i++ ) {
+		          pos_err[i] *= pos_err[i]; //Square the position error and add it to the total
+		          tot_pos_err += pos_err[i];
+		          vel_err[i] *= vel_err[i]; //Do the same for velocity
+		          tot_vel_err += vel_err[i];
+		      }
+
+	        tot_pos_err = sqrt( tot_pos_err ); //Take the square root of the error sum (Pythagorean theorem)
+	        tot_vel_err = sqrt( tot_vel_err );
+
+          print_debug( DEBUG_ODE, "pos_err: %g, vel_err: %g", 
+          tot_pos_err, tot_vel_err );
+
+          // Figure out whether the position or velocity error is greater, and use that
+          // for further calculations.
+		      if ( tot_pos_err / MAX_POSITION_ERROR > tot_vel_err / MAX_VELOCITY_ERROR ){
+	          err = tot_pos_err;
+	          tol = MAX_POSITION_ERROR;
+		      }
+          else{
+	          err = tot_vel_err;
+	          tol = MAX_VELOCITY_ERROR;
+		      }
+
+		      // Update h based on error
+          // If the error is too large and h can be decreased, then decrease h
+		      if (  err > tol  && h > MIN_TIME_STEP + EPS  )
+		      {
+		        done = false; //We'll need to do another pass once we update h
+		        if ( !failed ) {
+			        failed = true;
+              //what exactly does this do?
+			        h *=  MAX( 0.5, 0.8 * pow( tol/err, float(solver.time_step_exponent()) ) );
+		        }
+            else { //cut h in half
+			        h *= 0.5;
+		        }
+
+            // Enforce max/min for h
+		        h = adjust_time_step_size( h, saved_vel );
+
+            // Go back to the saved position/velocity so we can run it again
+		        new_pos = saved_pos;
+		        new_vel = saved_vel;
+		        new_f = saved_f;
 		
-		} else {
-		    /* Error is acceptable or h is at its minimum; stop */
-		    break;
-		}
+		      } //END if (  err > tol  && h > MIN_TIME_STEP + EPS  )
+          else {
+	          /* Error is acceptable or h is at its minimum; stop */
+	          break;
+		      }
 
-	    } else {
-		/* Current solver doesn't provide error estimates; stop */
-		break;
+        } //END if ( solver.estimate_error != NULL )
+        else {
+	        /* Current solver doesn't provide error estimates; stop */
+	        break;
+        }
+	    } //END for(;;)
+
+	    /* Update time */
+	    t = t + h;
+
+	    tmp_vel = new_vel;
+	    speed = tmp_vel.normalize();
+
+	    /* only generate particles if we're drawing them */
+	    if ( getparam_draw_particles() ) {
+    //	    generate_particles( plyr, h, new_pos, speed );
 	    }
-	}
 
-	/* Update time */
-	t = t + h;
+	    // Calculate the final net force
+	    new_f = calc_net_force( racer, new_pos, new_vel );
 
-	tmp_vel = new_vel;
-	speed = tmp_vel.normalize();
+	    // If our first estimate was within the acceptable error range, compute a new h
+      // The goal is to find the largest h which will still keep the error within
+      // the acceptable range.
+	    if ( !failed && solver.estimate_error != NULL ) {
+		    double temp = 1.25 * pow((double)err / tol,(double)solver.time_step_exponent());
+		    if ( temp > 0.2 ) {
+		      h = h / temp;
+        }
+        else {
+		      h = 5.0 * h;
+	      }
+	    }// END if ( !failed && solver.estimate_error != NULL )
+      // If there were failiures, then we've already modified h
 
-	/* only generate particles if we're drawing them */
-	if ( getparam_draw_particles() ) {
-	    generate_particles( plyr, h, new_pos, speed );
-	}
-
-	/* Calculate the final net force */
-	new_f = calc_net_force( plyr, new_pos, new_vel );
-
-	/* If no failures, compute a new h */
-	if ( !failed && solver.estimate_error != NULL ) {
-		double temp = 1.25 * pow((double)err / tol,(double)solver.time_step_exponent());
-		if ( temp > 0.2 ) {
-		h = h / temp;
-	    } else {
-		h = 5.0 * h;
-	    }
-	}
-
-	/* Clamp h to constraints */
-	h = adjust_time_step_size( h, new_vel );
+	    // Enforce max/min for h
+	    h = adjust_time_step_size( h, new_vel );
 
 	/* Important: to make trees "solid", we must manipulate the 
 	   velocity here; if we don't and Tux is moving very quickly,
 	   he can pass through trees */
-	adjust_for_tree_collision( plyr, new_pos, &new_vel );
+//	adjust_for_tree_collision( plyr, new_pos, &new_vel );
 
 	/* Try to collect items here */
-	check_item_collection( plyr, new_pos );
+//	check_item_collection( plyr, new_pos );
 
-    }
+    } // END while(!done)
 
     /* Save time step for next time */
     ode_time_step = h;
 
-    plyr.vel = new_vel;
-    plyr.pos = new_pos;
-    plyr.net_force = new_f;
+    racer.setVelocity(new_vel);
+    racer.setPosition(new_pos);
+    racer.net_force = new_f;
 
+    //clean up
+    // seems like it isn't effecient to be allocating and freeing these a hundred
+    // times per second.  Perhaps the physical simulator can hold onto them?
     free( x );
     free( y );
     free( z );
@@ -1721,7 +1912,8 @@ void update_player_pos( Player& plyr, float dtime )
     float dist_from_surface;
 
     if ( dtime > 2. * EPS ) {
-	solve_ode_system( plyr, dtime );
+// just compile!
+//	solve_ode_system( plyr, dtime );
     }
 
     tmp_vel = plyr.vel;
@@ -1732,8 +1924,8 @@ void update_player_pos( Player& plyr, float dtime )
     surf_plane = get_local_course_plane( plyr.pos );
     surf_nml = surf_plane.nml;
     dist_from_surface = surf_plane.distance( plyr.pos );
-    adjust_velocity( &plyr.vel, plyr.pos, surf_plane, 
-		     dist_from_surface );
+//    adjust_velocity( &plyr.vel, plyr.pos, surf_plane, 
+//		     dist_from_surface );
     adjust_position( &plyr.pos, surf_plane, dist_from_surface );
 
     speed = tmp_vel.normalize();
@@ -1768,6 +1960,84 @@ void update_player_pos( Player& plyr, float dtime )
 
     ModelHndl->adjust_tux_joints( plyr.control.turn_animation, plyr.control.is_braking,
 		       paddling_factor, speed, local_force, flap_factor );
+}
+
+//----- new hacked version
+/*! 
+ * Updates Tux's position taking into account gravity, friction, tree 
+ * collisions, etc.  This is the main physics function.
+ */
+void update_player_pos( Player& plyr, float dtime, Racer& racer )
+{
+  pp::Plane surf_plane;
+  float dist_from_surface;
+
+
+plyr.control.is_paddling = racer.paddling();
+plyr.control.is_braking = racer.braking();
+plyr.control.turn_fact = racer.turnFactor();
+
+
+  //What does this do?  Pretty much everything, it seems.
+  if ( dtime > 2. * EPS ) {
+// just compile!
+//    solve_ode_system( plyr, dtime );
+  }
+
+  /*
+   * Set position, orientation, generate particles
+   */
+  surf_plane = get_local_course_plane( plyr.pos );
+
+  dist_from_surface = surf_plane.distance( plyr.pos );
+
+//  adjust_velocity( &plyr.vel, plyr.pos, surf_plane, dist_from_surface );
+//  adjust_position( &plyr.pos, surf_plane, dist_from_surface );
+
+  set_tux_pos( plyr, plyr.pos );
+
+  pp::Vec3d surfaceNormal = surf_plane.nml;
+  adjust_orientation( plyr, dtime, plyr.pos, plyr.vel, 
+		dist_from_surface, surfaceNormal );
+
+/*
+  //Calculate information necessary to draw Tux
+
+  float speed = racer.velocity().normalize();
+
+  // calculate force in Tux's local coordinate system
+  pp::Vec3d local_force = plyr.orientation.conjugate().rotate(plyr.net_force);
+
+  float paddling_factor;
+  float flap_factor = 0;
+
+  if ( racer.paddling() ) {
+	  double factor;
+	  factor = (gameMgr->time - plyr.control.paddle_time) / PADDLING_DURATION;
+	  if ( plyr.airborne ) {
+	      paddling_factor = 0;
+	      flap_factor = factor;
+	  } else {
+	      paddling_factor = factor;
+	      flap_factor = 0;
+	  }
+      } else {
+	  paddling_factor = 0.0;
+  }
+
+
+  if (plyr.control.jumping) {
+    flap_factor = (gameMgr->time - plyr.control.jump_start_time) / 
+      JUMP_FORCE_DURATION;
+  }
+
+  ModelHndl->adjust_tux_joints( plyr.control.turn_animation, plyr.control.is_braking,
+	       paddling_factor, speed, local_force, flap_factor );
+*/
+//Hack!
+//copy the state back to the new class
+racer.setVelocity(plyr.vel);
+
 }
 
 

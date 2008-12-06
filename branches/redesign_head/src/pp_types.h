@@ -191,7 +191,8 @@ typedef enum {
     JOYSTICK = 2
 } control_mode_t;
 
-/// Control data
+//! Player control data
+// This really needs to be moved into the player/racer class
 typedef struct {
     /// control mode
 	control_mode_t mode; 

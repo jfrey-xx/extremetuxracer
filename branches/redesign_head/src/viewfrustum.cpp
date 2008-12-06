@@ -39,7 +39,13 @@ static bool p_vertex_code_y[6];
 static bool p_vertex_code_z[6];
 
 
-void setup_view_frustum( Player& plyr, double near_dist, 
+void setup_view_frustum( Player& player, double near_dist, double far_dist )
+{
+  setup_view_frustum (player.view, near_dist, far_dist);
+
+}
+
+void setup_view_frustum( view_t& view, double near_dist, 
 			 double far_dist )
 {
     double aspect = (double) getparam_x_resolution() /
@@ -79,10 +85,10 @@ void setup_view_frustum( Player& plyr, double near_dist,
 
     /* We now transform frustum to world coordinates */
     for (i=0; i<6; i++) {
-	pt = plyr.view.inv_view_mat.transformPoint(
+	pt = view.inv_view_mat.transformPoint(
 	    origin + (-frustum_planes[i].d*frustum_planes[i].nml) );
 
-	frustum_planes[i].nml = plyr.view.inv_view_mat.transformVector( frustum_planes[i].nml );
+	frustum_planes[i].nml = view.inv_view_mat.transformVector( frustum_planes[i].nml );
 
 	frustum_planes[i].d = -( 
 	    frustum_planes[i].nml*

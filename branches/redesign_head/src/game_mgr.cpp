@@ -57,6 +57,7 @@ GameMgr::reset(gametype_t type)
 unsigned int
 GameMgr::calculateScore(double time, int herring, int health)
 {
+  //timescore is 100 * time left, with a minimum of 0
 	int timescore = MAX( 0, int(100*((*mi_currentRace).time_req[DIFFICULTY_LEVEL_EASY]-time)));
 	int herringscore = 200*herring;
 	

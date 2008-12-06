@@ -24,8 +24,30 @@
 
 #include "loop.h"
 
+#include "racer.h"
+#include "humanracer.h"
+#include <vector>
+
 class Racing : public GameMode
 {
+public:
+	Racing();
+	~Racing();
+
+	void loop(float timeStep);
+  void updatePhysics(float);
+  void renderView(void);
+
+	bool keyboardEvent(SDLKey key, bool release);
+	bool keyPressEvent(SDLKey key);
+
+private:
+  // Use a vector because we'll only be adding to the end, and
+  // don't need to traverse backwards through it.
+  std::vector<Racer*> mRacers;
+
+public: //eek!
+  //these need to go away
 	bool m_rightTurn;
 	bool m_leftTurn;
 	bool m_trickModifier;
@@ -36,14 +58,6 @@ class Racing : public GameMode
 	int m_lastTerrain;
 	
 	void calcJumpAmt( double time_step );
-public:
-	Racing();
-	~Racing();
-
-	void loop(float timeStep);
-
-	bool keyboardEvent(SDLKey key, bool release);
-	bool keyPressEvent(SDLKey key);
 };
 
 

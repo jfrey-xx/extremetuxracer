@@ -1,8 +1,6 @@
 /* 
- * PPRacer 
- * Copyright (C) 2004-2005 Volker Stroebel <volker@planetpenguin.de>
- *
- * Copyright (C) 1999-2001 Jasmin F. Patry
+ * Extreme Tux Racer
+ * Copyright (C) 2008 Steven Bell <botsnlinux@gmail.com>
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -18,22 +16,37 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
+#ifndef _HUMANRACER_H_
+#define _HUMANRACER_H_
 
-#ifndef _VIEWMODE_H_
-#define _VIEWMODE_H_
+#include "racer.h"
 
-#include "pp_types.h"
+class HumanRacer : public Racer
+{
+public:
+  HumanRacer();
 
-#include "player.h"
-class Racer;
+  //! Overrides function from Racer
+  void updatePosition(float timeStep);
 
-void set_view_mode( Player& plyr, view_mode_t mode );
-view_mode_t get_view_mode( Player& plyr );
-void traverse_dag_for_view_point( scene_node_t *node, pp::Matrix trans );
-pp::Vec3d get_tux_view_pt();
-void set_tux_eye( tux_eye_t which_eye, pp::Vec3d pt );
-void update_view( Player& plyr, double dt );
-void update_view( Racer& racer, double timeStep );
-void setup_view_matrix( Player& plyr );
+  //! Overrides function from Racer
+  void keyboardEvent(SDLKey key, bool release);
 
-#endif /* _VIEWMODE_H_ */
+
+
+private:
+
+
+
+
+
+  //! Turn animation amount.  Floating-point value from -1 to +1
+	float mTurnAnimation;
+
+private: //helper functions
+  void updateTurnAnimation(float);
+
+
+};
+
+#endif

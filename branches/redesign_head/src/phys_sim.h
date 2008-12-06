@@ -27,6 +27,7 @@
 #include "player.h"
 
 #include "ppgltk/alg/plane.h"
+#include "racer.h"
 
 /* Acceleration due to gravity m/s^2 */
 #define EARTH_GRAV 9.81
@@ -52,8 +53,36 @@ float  find_y_coord( float x, float z );
 void      get_surface_type( float x, float z, float weights[] );
 pp::Plane   get_local_course_plane( pp::Vec3d pt );
 float  get_compression_depth( const int terrain ); 
-void      set_tux_pos( Player& plyr, pp::Vec3d newPos );
+
+void solve_ode_system( Racer& racer, float dtime );
+
+//!Enforces limits on the position of the player(s), and checks to see if the race is over.
+pp::Vec3d  limitPosition( pp::Vec3d newPos );
+
+//! Old function
+void set_tux_pos( Player& plyr, pp::Vec3d new_pos );
+
+double adjust_velocity( pp::Vec3d *vel, pp::Vec3d pos, 
+			  pp::Plane surf_plane, float dist_from_surface );
+
+//! Enforces the minimum velocity for Tux
+double forceMinimumVelocity( pp::Vec3d *velocity, pp::Plane surf_plane);
+
+//! Ensures that Tux does not fall below the surface
+pp::Vec3d enforceMaxPenetration(pp::Vec3d position, pp::Plane surfacePlane);
+
+
+void adjust_position( pp::Vec3d *pos, pp::Plane surf_plane, 
+		      float dist_from_surface );
+
+void adjust_orientation( Racer& racer, float dtime, 
+			 pp::Vec3d pos, pp::Vec3d vel,
+			 float dist_from_surface, pp::Vec3d surf_nml );
+
+void      update_player_pos( Racer& racer, float dtime );
+
 void      update_player_pos( Player& plyr, float dtime );
+void      update_player_pos( Player& plyr, float dtime, Racer& racer );
 void      init_physical_simulation();
 
 #endif // _PHYS_SIM_H_

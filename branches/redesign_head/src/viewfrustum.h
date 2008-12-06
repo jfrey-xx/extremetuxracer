@@ -34,7 +34,9 @@ typedef enum {
     NotVisible
 } clip_result_t;
 
-void setup_view_frustum( Player& plyr, double near, double far );
+//so we don't break everything...
+void setup_view_frustum( Player& player, double near_dist, double far_dist );
+void setup_view_frustum( view_t& view, double near, double far );
 
 clip_result_t clip_aabb_to_view_frustum( const pp::Vec3d& min, const pp::Vec3d& max );
 
