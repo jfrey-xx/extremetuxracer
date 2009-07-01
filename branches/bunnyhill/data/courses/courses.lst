@@ -1,0 +1,58 @@
+*[name] Test [dir] test [public] 0
+[herring] 20 22 23 [time] 28 24 22
+[desc] Experimental test course
+
+*[name] Bunny Hill [dir] bunnyhill [public] 1
+[herring] 20 22 23 [time] 28 26 25
+[desc] Use clever turning to conquer the Bunny Hill. 
+
+*[name] Twisty Slope [dir] twistyslope [public] 1
+[herring] 21 23 24 [time] 34 32 30
+[desc] Tight twists make grabbing herring difficult. Hard turns will lead you to victory.
+
+*[name] Bumpy Ride [dir] bumpyride [public] 1
+[herring] 13 16 17 [time] 32 28 26
+[desc] This hill has a series of ramps tackle. Make sure to line yourself up before getting airborne.
+
+*[name] Explore the Mountains [dir] explore_mountains [public] 0
+[herring] 40 48 52 [time] 160 150 146
+[desc] If you don't reach time and herring try to find another way through the mountains.
+
+*[name] Secret Valleys [dir] secret_valleys [public] 0
+[herring] 52 58 64 [time] 170 162 154
+[desc] Beside the main path there are some interesting places with special challenges.
+
+*[name] Frozen Lakes [dir] frozen_lakes [public] 0
+[herring] 34 38 42 [time] 149 132 128
+[desc] A trip through winterly landscape. Mind your speed when you are passing a frozen lake. 
+
+*[name] Test 01 [dir] course_01
+[herring] 0 0 0 [time] 40 40 40
+[desc] This course was used for testing the new physics and collision code. With the new code it was possible to use real 3D models and Tux could collide with them.
+
+*[name] Test 03 [dir] course_03
+[herring] 0 0 0 [time] 60 60 60
+[desc] In this version I tested the code for Tux orientation and animation. Some new keyframes were implemented. The course is shortened, so you reach the finish line in few seconds. 
+
+*[name] Test 04 [dir] course_04
+[herring] 18 19 20 [time] 31 29 28
+[desc] Test course of version 0.04. A new particles code and trackmarks code was implemented.
+
+*[name] Test 05 [dir] course_05
+[herring] 25 28 29 [time] 34 32 30
+[desc] A simple course for testing the race conditions and the lighting.
+
+*[name] Challenge One [dir] challenge_one
+[herring] 50 55 60 [time] 180 180 180
+[desc] This race is quite difficult. Try to catch at least 60 herrings und pay attention that you don't get stuck. Control your speed, the time is not important. There's only a limit of 180 seconds. I've already caught 65 herrings.
+
+*[name] In the search of the Holy Grail [dir] holygrail
+[herring] 25 28 50 [time] 180 180 180
+[desc] It's not easy to find the grail, but believe me: the grail exists. You have to pass some hidden valleys and 3 castles. 
+
+
+
+
+
+
+

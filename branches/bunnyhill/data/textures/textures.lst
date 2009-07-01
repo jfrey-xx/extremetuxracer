@@ -1,0 +1,27 @@
+# textures.lst
+
+# These textures are for common use during runtime.
+# Please do not change anything !!!
+
+* [id] 0  [name] widgets [file] widgets5.png [repeat] 0
+* [id] 1  [name] ziff032 [file] ziff032.png [repeat] 0
+* [id] 2  [name] logo [file] splash5.png [repeat] 0
+* [id] 3  [name] snow2 [file] snow2.png [repeat] 0	
+* [id] 4  [name] snow3 [file] snow3.png [repeat] 0	
+* [id] 5  [name] gauge_energy_mask [file] gaugeenergymask.png [repeat] 0
+* [id] 6  [name] gauge_speed_mask [file] gaugespeedmask.png [repeat] 0
+* [id] 7  [name] gauge_outline [file] gaugeoutline.png [repeat] 0
+* [id] 8  [name] speedmeter [file] speedmeter.png [repeat] 0
+* [id] 9  [name] snow4 [file] snow4.png [repeat] 0	
+* [id] 10 [name] etrlogo [file] splash_small.png [repeat] 0
+* [id] 13 [name] envmap [file] envmap.png [repeat] 1
+* [id] 15 [name] topleft [file] menu_top_left.png [repeat] 0
+* [id] 16 [name] topright [file] menu_top_right.png [repeat] 0
+* [id] 17 [name] bottomleft [file] menu_bottom_left.png [repeat] 0
+* [id] 18 [name] bottomright [file] menu_bottom_right.png [repeat] 0
+* [id] 21 [name] speedknob [file] speedknob2.png [repeat] 0
+
+
+
+
+

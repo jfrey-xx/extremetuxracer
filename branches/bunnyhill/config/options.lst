@@ -1,0 +1,116 @@
+# fullscreen
+# If true then the game will run in full-screen mode.
+# 
+[fullscreen] false
+
+
+# x_resolution
+# The horizontal size of the Tux Racer window
+# 
+[xres] 1024
+
+
+# y_resolution
+# The vertical size of the Tux Racer window
+# 
+[yres] 768
+
+
+# forward_clip_distance
+# Controls how far ahead of the camera the course
+# is rendered.  Larger values mean that more of the course is
+# rendered, resulting in slower performance. Decreasing this 
+# value is an effective way to improve framerates.
+# 
+[forwardclip] 125
+
+
+# backward_clip_distance
+# [EXPERT] Some objects aren't yet clipped to the view frustum, 
+# so this value is used to control how far up the course these 
+# objects are drawn.
+# 
+[backwardclip] 20
+
+
+# near_clip_distance
+# [EXPERT] This value is used for setting the viewport
+# 
+[nearclip] 0.1
+
+
+# fov
+# [EXPERT] Sets the camera field of view
+# 
+[fov] 60
+
+
+# bpp_mode
+# Controls how many bits per pixel are used in the game.
+# Valid values are:
+# 0: Use current bpp setting of operating system
+# 1: 16 bpp
+# 2: 32 bpp
+# 
+[bpp] 2
+
+
+# show_hud
+# If false then the hud displays will be hidden.
+# That may be advantageous for screenshots.
+# You can toggle this option during the race by typing 'h'
+# 
+[show_hud] true
+
+
+# show_fps
+# If your computer is fast enough (> 40 fps) you needn't show the fps.
+# 
+[show_fps] true
+
+
+# show_herring
+# If false the herrings are unvisible. This option seems to be
+# nonsense but it can be helpful for time measuring regardless
+# of the herrings.
+# 
+[show_herring] true
+
+
+# draw_particles
+# Controls the drawing of snow particles that are kicked up as Tux
+# turns and brakes. Setting this to false should help improve 
+# performance.
+# 
+[draw_particles] true
+
+
+# draw_trackmarks
+# If true then the players will leave track marks in the snow.
+# 
+[draw_trackmarks] true
+
+
+# draw_previous_track
+# If true then the track of the previous race is shown.
+# 
+[draw_previous_track] true
+
+
+# optimize_trackmarks
+# If true then the trackmarks are not calculated in each frame.
+# That improves performance but the track might appear less beautifully.
+# perfectly.
+# 
+[optimize_trackmarks] true
+
+
+# full_skybox
+# On a normal course you never see the top, back and bottom view
+# of the skybox. In this case it's not required to draw them.
+# Set this option to true if you want to display the complete set
+# of 6 pics - provided that the pics exist.
+# 
+[full_skybox] false
+
+

@@ -1,0 +1,11 @@
+[name] Bunny Hill
+[width] 90 [play_width] 85 [length] 480 [play_length] 440 
+[angle] 15 [scale] 12 [speed] 11
+[startpoint] 45.0 -3.5  
+
+[start_keyframe] tux_jump.lst
+[success_keyframe] tux_joice.lst
+[failure_keyframe] tux_sad.lst
+[final_keyframe] tux_wait.lst
+
+

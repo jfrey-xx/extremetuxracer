@@ -1,0 +1,11 @@
+[name] Secret Valleys
+[width] 140 [play_width] 135 [length] 2000 [play_length] 1970 
+[angle] 15 [scale] 12 [speed] 10
+[startpoint] 70.0 -3.0  
+
+[start_keyframe] tux_jump.lst
+[success_keyframe] tux_joice.lst
+[failure_keyframe] tux_sad.lst
+[final_keyframe] tux_wait.lst
+
+

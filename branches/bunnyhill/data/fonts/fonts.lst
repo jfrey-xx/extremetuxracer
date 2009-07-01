@@ -1,0 +1,8 @@
+# list of fonts
+
+*[name] normal [file] std.ttf
+*[name] italic [file] stditalic.ttf 
+*[name] bold [file] stdbold.ttf
+*[name] outline [file] outline.ttf
+
+

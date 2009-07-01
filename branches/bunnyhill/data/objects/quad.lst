@@ -1,0 +1,15 @@
+# generated from Milkshape file by MLoader
+
+*[S] 0  [vertices] 4 [triangles] 0 [quads] 1 [tex] 0 [smooth] 0 [mat] 1
+
+# Vertices:
+*[S] 1 [n] 0 [v] -1.0000 0.0000 0.0000 
+*[S] 1 [n] 1 [v] 1.0000 0.0000 0.0000 
+*[S] 1 [n] 2 [v] 1.0000 2.0000 0.0000 
+*[S] 1 [n] 3 [v] -1.0000 2.0000 0.0000 
+
+# Triangles
+
+# Quads:
+*[S] 3 [n] 0 [v] 0 1 2 3 [t1] 0 0 [t2] 1 0 [t3] 1 1 [t4] 0 1 
+

@@ -1,0 +1,16 @@
+# [bonus] - number of "tuxlives"
+# [mode] 0 - training 
+# [mode] 1 - time
+# [mode] 2 - herring
+# [mode] 3 - time and herring 
+# [mode] 4 - score points 
+# [mode] 5 - race vs. opponent (time-time)		
+  
+*[name] Canadian Cup [dir] canadian_cup [bonus] 2 [mode] 3
+[desc] The classic Tuxracer campaign for beginners
+
+*[name] Mountain Cup [dir] mountain_cup [bonus] 4 [mode] 3
+[desc] A campaign with longer courses but nevertheless not very difficult
+
+
+
