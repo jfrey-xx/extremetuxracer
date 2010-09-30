@@ -1,8 +1,0 @@
-# please note:
-# [race] and [location] are directories !!!
-
-*[race] explore_mountains [location] tuxracer [light] evening [snow] 1 [wind] 0
-*[race] secret_valleys [location] tuxracer [light] sunny [snow] 0 [wind] 2
-*[race] frozen_lakes [location] tuxracer [light] foggy [snow] 3 [wind] 1
-
-

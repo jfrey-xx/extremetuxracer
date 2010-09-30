@@ -1,4 +1,0 @@
-*[name] start_screen [file] start.it [loops] -1
-*[name] options_screen [file] credits.it [loops] -1
-*[name] racing [file] race.it [loops] -1
-*[name] game_over [file] wonrace.it [loops] 1

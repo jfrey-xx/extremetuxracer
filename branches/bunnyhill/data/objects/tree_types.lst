@@ -1,5 +1,0 @@
-# collision: 0 - none, 1 - body, 2 - triangles and quads
-
-*[name] tree1 [type] 1 [texture] tree1.png [rad] 1.0
-*[name] tree2 [type] 1 [texture] tree2.png [rad] 1.0
-*[name] tree3 [type] 1 [texture] tree3.png [rad] 1.0

@@ -1,8 +1,0 @@
-# please note:
-# [race] and [location] are directories !!!
-
-*[race] bunnyhill [location] etr [light] sunny [snow] 0 [wind] 0
-*[race] twistyslope [location] etr [light] sunset [snow] 1 [wind] 1
-*[race] bumpyride [location] etr [light] cloudy [snow] 2 [wind] 2
-
-

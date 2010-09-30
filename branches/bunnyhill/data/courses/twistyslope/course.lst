@@ -1,9 +1,0 @@
-[name] Twisty Slope
-[width] 90 [play_width] 85 [length] 480 [play_length] 450 
-[angle] 15 [scale] 7 [speed] 10
-[startpoint] 45.0 -3.5  
-
-[start_keyframe] tux_walk.lst
-[success_keyframe] tux_joice.lst
-[failure_keyframe] tux_sad.lst
-[final_keyframe] tux_wait.lst
