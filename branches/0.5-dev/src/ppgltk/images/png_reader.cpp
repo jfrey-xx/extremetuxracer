@@ -19,6 +19,9 @@
 
 #include "png_reader.h"
 
+#define png_infopp_NULL (png_infopp)NULL
+#define int_p_NULL (int*)NULL
+
 namespace pp {
 
 ReaderPNG::ReaderPNG(const char *fileName)
