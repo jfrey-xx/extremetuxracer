@@ -64,32 +64,25 @@ void StartRace () {
 }
 
 void CEvent::Keyb (unsigned int key, bool special, bool release, int x, int y) {
-	if (release) return;
+    if (release) return;
 	switch (key) {
-		case SDLK_RETURN:
-			if (curr_focus == textbuttons[0] && ready < 1) StartRace ();
-			else State::manager.RequestEnterState (EventSelect);
-			break;
-		case SDLK_ESCAPE:
-			State::manager.RequestEnterState (EventSelect);
-			break;
-		case SDLK_TAB:
-			if (ready > 0) {
-				curr_focus = textbuttons[2];
-			} else {
-				if (curr_focus == textbuttons[0]) curr_focus = textbuttons[1];
-				else curr_focus = textbuttons[0];
-			}
-			break;
-		case SDLK_LEFT:
-			if (curr_focus == textbuttons[0]) curr_focus = textbuttons[1];
-			break;
-		case SDLK_RIGHT:
-			if (curr_focus == textbuttons[1]) curr_focus = textbuttons[0];
-			break;
-		case SDLK_u:
-			param.ui_snow = !param.ui_snow;
-			break;
+	case SDLK_RETURN:
+		if (curr_focus == textbuttons[0] && ready < 1) StartRace ();
+		else State::manager.RequestEnterState (EventSelect);
+		break;
+	case SDLK_ESCAPE:
+		State::manager.RequestEnterState (EventSelect);
+		break;
+	case SDLK_TAB:
+		if (ready > 0) {
+			curr_focus = textbuttons[2];
+		} else {
+			if (curr_focus == textbuttons[0]) curr_focus = textbuttons[1]; else curr_focus = textbuttons[0];
+		}
+		break;
+	case SDLK_LEFT: if (curr_focus == textbuttons[0]) curr_focus = textbuttons[1]; break;
+	case SDLK_RIGHT: if (curr_focus == textbuttons[1]) curr_focus = textbuttons[0]; break;
+	case SDLK_u: param.ui_snow = !param.ui_snow; break;
 	}
 }
 
@@ -97,10 +90,10 @@ void CEvent::Mouse (int button, int state, int x, int y) {
 	if (state != 1) return;
 
 	TWidget* clicked = ClickGUI(x, y);
-	if (clicked == textbuttons[0]) {
+	if(clicked == textbuttons[0]) {
 		if (ready < 1)
 			StartRace ();
-	} else if (clicked == textbuttons[1])
+	} else if(clicked == textbuttons[1])
 		State::manager.RequestEnterState (EventSelect);
 }
 
@@ -123,8 +116,7 @@ void UpdateCupRacing () {
 	size_t lastrace = ecup->races.size() - 1;
 	curr_bonus += g_game.race_result;
 	if (g_game.race_result >= 0) {
-		if (curr_race < lastrace) curr_race++;
-		else ready = 1;
+		if (curr_race < lastrace) curr_race++; else ready = 1;
 	} else {
 		if (curr_bonus == 0) ready = 2;
 	}
@@ -145,7 +137,7 @@ void CEvent::Enter () {
 	Winsys.ShowCursor (!param.ice_cursor);
 
 	if (State::manager.PreviousState() == &GameOver) UpdateCupRacing ();
-	else InitCupRacing ();
+		else InitCupRacing ();
 
 	framewidth = 500;
 	frametop = AutoYPosN (45);
@@ -166,8 +158,7 @@ void CEvent::Enter () {
 	textbuttons[2] = AddTextButton (Trans.Text(15), CENTER, AutoYPosN (80), siz);
 
 	Music.Play (param.menu_music, -1);
-	if (ready < 1) curr_focus = textbuttons[0];
-	else curr_focus = textbuttons[2];
+	if (ready < 1) curr_focus = textbuttons[0]; else curr_focus = textbuttons[2];
 	g_game.loopdelay = 20;
 }
 
@@ -184,7 +175,7 @@ void CEvent::Loop (double timestep) {
 	check_gl_error();
 	ScopedRenderMode rm(GUI);
 	Music.Update ();
-	ClearRenderContext ();
+    ClearRenderContext ();
 	SetupGuiDisplay ();
 
 	if (param.ui_snow) {
@@ -208,7 +199,7 @@ void CEvent::Loop (double timestep) {
 		DrawBonusExt (bonustop, (int)ecup->races.size(), curr_bonus);
 
 		DrawFrameX (area.left, frametop, framewidth,
-		            (int)ecup->races.size() * dist + 20, 3, colBackgr, colWhite, 1);
+			(int)ecup->races.size() * dist + 20, 3, colBackgr, colWhite, 1);
 
 		for (size_t i=0; i<ecup->races.size(); i++) {
 			FT.AutoSizeN (3);
@@ -259,5 +250,5 @@ void CEvent::Loop (double timestep) {
 	textbuttons[2]->SetVisible(!(ready < 1));
 
 	DrawGUI ();
-	Winsys.SwapBuffers();
+    Winsys.SwapBuffers();
 }

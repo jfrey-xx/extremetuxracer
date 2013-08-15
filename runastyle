@@ -1,1 +1,0 @@
-astyle --options=astyle.ini *.cpp *.h
