@@ -2,8 +2,8 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.61])
-AC_INIT([etr], [0.6.99], [https://sourceforge.net/apps/phpbb/extremetuxracer])
-AC_CONFIG_SRCDIR([src/gui.cpp])
+AC_INIT([etr], [0.6.0], [https://sourceforge.net/apps/phpbb/extremetuxracer])
+AC_CONFIG_SRCDIR([gui.cpp])
 AC_CONFIG_HEADERS([etr_config.h])
 
 AM_INIT_AUTOMAKE([dist-xz dist-zip])
@@ -77,7 +77,6 @@ CXXFLAGS="${CXXFLAGS} -std=c++11"
 
 AC_CONFIG_FILES([
         Makefile
-        src/Makefile
         build/Makefile
         build/Installer/Makefile
         data/Makefile
