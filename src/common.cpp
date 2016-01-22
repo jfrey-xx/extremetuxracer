@@ -30,7 +30,7 @@ GNU General Public License for more details.
 //				color utils
 // --------------------------------------------------------------------
 
-#define TColor(r, g, b, a) sf::Color(static_cast<sf::Uint8>(r*255), static_cast<sf::Uint8>(g*255), static_cast<sf::Uint8>(b*255), static_cast<sf::Uint8>(a*255))
+#define TColor(r, g, b, a) sf::Color(r*255, g*255, b*255, a*255)
 const sf::Color colDYell =		TColor(1.0, 0.8, 0.0, 1.0);
 const sf::Color colDDYell =		TColor(0.8, 0.6, 0.0, 1.0);
 const sf::Color colLYell =		TColor(1.0, 1.0, 0.4, 1.0);
@@ -51,82 +51,77 @@ const sf::Color colTBackr =		TColor(0.4, 0.6, 0.8, 0.0);
 const sf::Color colMess =		TColor(0.3, 0.3, 0.7, 1.0);
 const sf::Color colSky =		TColor(0.82, 0.86, 0.88, 1.0);
 
-const sf::Color colBronze   = sf::Color(205, 127, 50,  255);
-const sf::Color colSilver   = sf::Color(192, 192, 192, 255);
-const sf::Color colGold     = sf::Color(255, 215, 0,   255);
-const sf::Color colGreen    = sf::Color(0,   128, 0,   255);
-
 // --------------------------------------------------------------------
 //				print utils
 // --------------------------------------------------------------------
 
 void PrintInt(const int val) {
-	std::cout << "Integer: " << val << '\n';
+	cout << "Integer: " << val << '\n';
 }
 
-void PrintInt(const std::string& s, const int val) {
-	std::cout << s << val << std::endl;
+void PrintInt(const string& s, const int val) {
+	cout << s << val << endl;
 }
 
 void PrintStr(const char *val) {
-	std::cout << val << '\n';
+	cout << val << '\n';
 }
 
-void PrintString(const std::string& s) {
-	std::cout << s << std::endl;
+void PrintString(const string& s) {
+	cout << s << endl;
 }
 
 void PrintDouble(const double val) {
-	std::cout.precision(4);
-	std::cout << val << '\n';
+	cout.precision(4);
+	cout << val << '\n';
 }
 
 void PrintVector4(const TVector4d& v) {
-	std::cout.precision(3);
-	std::cout << v.x << "  " << v.y << "  " << v.z << "  " << v.w << '\n';
+	cout.precision(3);
+	cout << v.x << "  " << v.y << "  " << v.z << "  " << v.w << '\n';
 }
 
 void PrintColor(const sf::Color& v) {
-	std::cout.precision(3);
-	std::cout << v.r << "  " << v.g << "  " << v.b << '\n';
+	cout.precision(3);
+	cout << v.r << "  " << v.g << "  " << v.b << '\n';
 }
 
 void PrintVector2(const TVector2d& v) {
-	std::cout.precision(3);
-	std::cout << v.x << "  " << v.y << '\n';
+	cout.precision(3);
+	cout << v.x << "  " << v.y << '\n';
 }
 
 void PrintVector(const TVector3d& v) {
-	std::cout.precision(5);
-	std::cout << v.x << "  " << v.y << "  " << v.z << '\n';
+	cout.precision(5);
+	cout << v.x << "  " << v.y << "  " << v.z << '\n';
 }
 
 template<int x, int y>
 void PrintMatrix(const TMatrix<x, y>& mat) {
-	std::cout << '\n';
-	std::cout.precision(3);
+	cout << '\n';
+	cout.precision(3);
 	for (int i=0; i<x; i++) {
 		for (int j=0; j<y; j++) {
-			if (mat[i][j]>=0) std::cout << ' ';
-			std::cout << "  " << mat[i][j];
+			if (mat[i][j]>=0) cout << ' ';
+			cout << "  " << mat[i][j];
 		}
-		std::cout << '\n';
+		cout << '\n';
 	}
-	std::cout << '\n';
+	cout << '\n';
 }
 template void PrintMatrix<4, 4>(const TMatrix<4, 4>& mat);
 template void PrintMatrix<3, 3>(const TMatrix<3, 3>& mat);
 
 void PrintQuaternion(const TQuaternion& q) {
-	std::cout.precision(5);
-	std::cout << "Quaternion: " << q.x << "  " << q.y << "  " << q.z << "  " << q.w << '\n';
+	cout.precision(5);
+	cout << "Quaternion: " << q.x << "  " << q.y << "  " << q.z << "  " << q.w << '\n';
 }
 
 // --------------------------------------------------------------------
 //				message utils
 // --------------------------------------------------------------------
 
-static CSPList msg_list;
+static CSPList msg_list(100);
 
 void SaveMessages() {
 	msg_list.Save(param.config_dir, "messages");
@@ -134,29 +129,29 @@ void SaveMessages() {
 
 void Message(const char *msg, const char *desc) {
 	if (*msg == 0 && *desc == 0) {
-		std::cout << '\n';
+		cout << '\n';
 		return;
 	}
 
-	std::string aa = msg;
-	std::string bb = desc;
-	std::cout << aa << "  " << bb << '\n';
+	string aa = msg;
+	string bb = desc;
+	cout << aa << "  " << bb << '\n';
 	msg_list.Add(aa + bb);
 }
 
 void Message(const char *msg) {
-	std::cout << msg << '\n';
+	cout << msg << '\n';
 	if (*msg != 0)
 		msg_list.Add(msg);
 }
 
-void Message(const std::string& a, const std::string& b) {
-	std::cout << a << ' ' << b << std::endl;
+void Message(const string& a, const string& b) {
+	cout << a << ' ' << b << endl;
 	msg_list.Add(a + b);
 }
 
-void Message(const std::string& msg) {
-	std::cout << msg << std::endl;
+void Message(const string& msg) {
+	cout << msg << endl;
 	msg_list.Add(msg);
 }
 
@@ -164,7 +159,7 @@ void Message(const std::string& msg) {
 //				file utils
 // --------------------------------------------------------------------
 
-bool FileExists(const std::string& filename) {
+bool FileExists(const string& filename) {
 	struct stat stat_info;
 	if (stat(filename.c_str(), &stat_info) != 0) {
 		if (errno != ENOENT) Message("couldn't stat", filename);
@@ -172,7 +167,7 @@ bool FileExists(const std::string& filename) {
 	} else return true;
 }
 
-bool FileExists(const std::string& dir, const std::string& filename) {
+bool FileExists(const string& dir, const string& filename) {
 	return FileExists(dir + SEP + filename);
 }
 
@@ -204,12 +199,12 @@ void GetTimeComponents(double time, int *min, int *sec, int *hundr) {
 	*hundr = ((int)(time * 100 + 0.5)) % 100;
 }
 
-std::string GetTimeString() {
-	std::time_t rawtime;
-	std::time(&rawtime);
-	struct std::tm* timeinfo = std::localtime(&rawtime);
+string GetTimeString() {
+	time_t rawtime;
+	time(&rawtime);
+	struct tm* timeinfo = localtime(&rawtime);
 
-	std::string line = Int_StrN(timeinfo->tm_mon + 1);
+	string line = Int_StrN(timeinfo->tm_mon + 1);
 	line += '_' + Int_StrN(timeinfo->tm_mday);
 	line += '_' + Int_StrN(timeinfo->tm_hour);
 	line += Int_StrN(timeinfo->tm_min);

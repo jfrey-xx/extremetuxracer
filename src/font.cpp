@@ -33,9 +33,9 @@ GNU General Public License for more details.
 // CFont::MakeLineList. This bundle of functions generates
 // a vector<string> from a textstring and adapts the lines to the textbox
 
-static void MakeWordList(std::vector<std::string>& wordlist, const char *s) {
-	std::size_t start = 0;
-	for (std::size_t i = 0; s[i] != '\0'; i++) {
+static void MakeWordList(vector<string>& wordlist, const char *s) {
+	size_t start = 0;
+	for (size_t i = 0; s[i] != '\0'; i++) {
 		if (s[i] == ' ') {
 			if (i != start)
 				wordlist.emplace_back(s + start, i - start);
@@ -48,10 +48,10 @@ static void MakeWordList(std::vector<std::string>& wordlist, const char *s) {
 		wordlist.emplace_back(s + start);
 }
 
-static std::size_t MakeLine(std::size_t first, const std::vector<std::string>& wordlist, std::vector<std::string>& linelist, float width) {
+static size_t MakeLine(size_t first, const vector<string>& wordlist, vector<string>& linelist, float width) {
 	if (first >= wordlist.size()) return wordlist.size()-1;
 
-	std::size_t last = first;
+	size_t last = first;
 	float lng = 0;
 
 	float spacelng = FT.GetTextWidth("a a") - FT.GetTextWidth("aa");
@@ -64,8 +64,8 @@ static std::size_t MakeLine(std::size_t first, const std::vector<std::string>& w
 		last++;
 	}
 
-	std::string line;
-	for (std::size_t j=first; j<last; j++) {
+	string line;
+	for (size_t j=first; j<last; j++) {
 		line += wordlist[j];
 		if (j < last)
 			line += ' ';
@@ -84,13 +84,13 @@ CFont FT;
 
 CFont::CFont() {
 	// setting default values
-	curr_col.r = 0;	// default color: black
-	curr_col.g = 0;
-	curr_col.b = 0;
-	curr_col.a = 255;	// default: no transparency
-	curr_size  = 20;	// default size: 20 px
-	curr_fact  = 0;
-	curr_font  = 0;
+	curr_col.r = 0.0;	// default color: black
+	curr_col.g = 0.0;
+	curr_col.b = 0.0;
+	curr_col.a = 1.0;	// default: no transparency
+	curr_size   = 20;	// default size: 20 px
+	curr_fact   = 0;
+	curr_font   = 0;
 }
 
 CFont::~CFont() {
@@ -98,7 +98,7 @@ CFont::~CFont() {
 }
 
 void CFont::Clear() {
-	for (std::size_t i = 0; i < fonts.size(); i++)
+	for (size_t i = 0; i < fonts.size(); i++)
 		delete fonts[i];
 	fonts.clear();
 	fontindex.clear();
@@ -108,7 +108,7 @@ void CFont::Clear() {
 //					public
 // --------------------------------------------------------------------
 
-int CFont::LoadFont(const std::string& name, const std::string& path) {
+int CFont::LoadFont(const string& name, const string& path) {
 	fonts.push_back(new sf::Font());
 	if (!fonts.back()->loadFromFile(path)) {
 		Message("Failed to open font");
@@ -119,23 +119,23 @@ int CFont::LoadFont(const std::string& name, const std::string& path) {
 	return (int)fonts.size()-1;
 }
 
-int CFont::LoadFont(const std::string& name, const std::string& dir, const std::string& filename) {
-	std::string path = dir;
+int CFont::LoadFont(const string& name, const string& dir, const string& filename) {
+	string path = dir;
 	path += SEP;
 	path += filename;
 	return LoadFont(name, path);
 }
 
 bool CFont::LoadFontlist() {
-	CSPList list;
+	CSPList list(MAX_FONTS);
 	if (!list.Load(param.font_dir, "fonts.lst")) {
 		fonts.push_back(new sf::Font()); // Insert an empty font, otherwise ETR will crash
 		return false;
 	}
 
 	for (CSPList::const_iterator line = list.cbegin(); line != list.cend(); ++line) {
-		std::string fontfile = SPStrN(*line, "file");
-		std::string name = SPStrN(*line, "name");
+		string fontfile = SPStrN(*line, "file");
+		string name = SPStrN(*line, "name");
 
 		int ftidx = LoadFont(name, param.font_dir, fontfile);
 		if (ftidx < 0) {
@@ -145,21 +145,21 @@ bool CFont::LoadFontlist() {
 	return true;
 }
 
-std::size_t CFont::GetFontIdx(const std::string &name) const {
+size_t CFont::GetFontIdx(const string &name) const {
 	return fontindex.at(name);
 }
 
-void CFont::SetProps(const std::string &fontname, unsigned int size, const sf::Color& col) {
+void CFont::SetProps(const string &fontname, float size, const sf::Color& col) {
 	SetProps(fontname, size);
 	curr_col  = col;
 }
 
-void CFont::SetProps(const std::string &fontname, unsigned int size) {
+void CFont::SetProps(const string &fontname, float size) {
 	curr_font = (int)GetFontIdx(fontname);
 	curr_size = size;
 }
 
-void CFont::SetFont(const std::string& fontname) {
+void CFont::SetFont(const string& fontname) {
 	try {
 		curr_font = (int)fontindex[fontname];
 	} catch (...) {
@@ -179,22 +179,23 @@ void CFont::SetFontFromSettings() {
 
 // -------------------- auto ------------------------------------------
 
-unsigned int CFont::AutoSizeN(int rel_val) {
-	unsigned int size = (rel_val + 2) * 4;
-	size *= curr_fact * Winsys.scale;
+int CFont::AutoSizeN(int rel_val) {
+	float size = (rel_val + 2) * 4;
+	size *= curr_fact;
+	size *= Winsys.scale;
 	SetSize(size);
-	return size;
+	return (int)size;
 }
 
 int CFont::AutoDistanceN(int rel_val) {
-	float fact = (rel_val + 5) * 0.2f;
+	float fact = (rel_val + 5) * 0.2;
 	float dist = curr_size * fact;
 	return (int) dist;
 }
 
 // -------------------- draw (x, y, text) -----------------------------
 
-void CFont::DrawText(float x, float y, const sf::String& text, std::size_t font, unsigned int size) const {
+void CFont::DrawText(float x, float y, const sf::String& text, size_t font, float size) const {
 	if (font >= fonts.size()) return;
 
 	sf::Text temp(text, *fonts[font], size);
@@ -209,14 +210,14 @@ void CFont::DrawString(float x, float y, const sf::String &s) const {
 	DrawText(x, y, s, curr_font, curr_size);
 }
 
-void CFont::DrawString(float x, float y, const sf::String& s, const std::string &fontname, unsigned int size) const {
+void CFont::DrawString(float x, float y, const sf::String& s, const string &fontname, float size) const {
 	DrawText(x, y, s, GetFontIdx(fontname), size);
 }
 
 
 // --------------------- metrics --------------------------------------
 
-void CFont::GetTextSize(const sf::String& text, float &x, float &y, std::size_t font, unsigned int size) const {
+void CFont::GetTextSize(const sf::String& text, float &x, float &y, size_t font, float size) const {
 	if (font >= fonts.size()) { x = 0; y = 0; return; }
 
 	sf::Text temp(text, *fonts[font], size);
@@ -224,7 +225,7 @@ void CFont::GetTextSize(const sf::String& text, float &x, float &y, std::size_t 
 	y = temp.getGlobalBounds().height;
 }
 
-void CFont::GetTextSize(const sf::String& text, float &x, float &y, const std::string &fontname, unsigned int size) const {
+void CFont::GetTextSize(const sf::String& text, float &x, float &y, const string &fontname, float size) const {
 	GetTextSize(text, x, y, GetFontIdx(fontname), size);
 }
 
@@ -238,19 +239,19 @@ float CFont::GetTextWidth(const sf::String& text) const {
 	return x;
 }
 
-float CFont::GetTextWidth(const sf::String& text, const std::string &fontname, unsigned int size) const {
-	std::size_t temp_font = GetFontIdx(fontname);
+float CFont::GetTextWidth(const sf::String& text, const string &fontname, float size) const {
+	size_t temp_font = GetFontIdx(fontname);
 	float x, y;
 	GetTextSize(text, x, y, temp_font, size);
 	return x;
 }
 
-std::vector<std::string> CFont::MakeLineList(const char *source, float width) {
-	std::vector<std::string> wordlist;
+vector<string> CFont::MakeLineList(const char *source, float width) {
+	vector<string> wordlist;
 	MakeWordList(wordlist, source);
-	std::vector<std::string> linelist;
+	vector<string> linelist;
 
-	for (std::size_t last = 0; last < wordlist.size();)
+	for (size_t last = 0; last < wordlist.size();)
 		last = MakeLine(last, wordlist, linelist, width)+1;
 
 	return linelist;

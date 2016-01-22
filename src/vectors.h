@@ -28,7 +28,7 @@ struct TVector2 {
 		: x(_x), y(_y)
 	{}
 	double Length() const {
-		return std::hypot(x, y);
+		return sqrt(static_cast<double>(x*x + y*y));
 	}
 	double Norm();
 	TVector2<T>& operator*=(T f) {
@@ -55,7 +55,7 @@ struct TVector3 {
 		: x(_x), y(_y), z(_z)
 	{}
 	double Length() const {
-		return std::sqrt(static_cast<double>(x*x + y*y + z*z));
+		return sqrt(static_cast<double>(x*x + y*y + z*z));
 	}
 	double Norm();
 	TVector3<T>& operator*=(T f) {
@@ -85,7 +85,7 @@ struct TVector4 {
 		: x(_x), y(_y), z(_z), w(_w)
 	{}
 	double Length() const {
-		return std::sqrt(static_cast<double>(x*x + y*y + z*z + w*w));
+		return sqrt(static_cast<double>(x*x + y*y + z*z + w*w));
 	}
 	double Norm();
 	TVector4<T>& operator*=(T f) {

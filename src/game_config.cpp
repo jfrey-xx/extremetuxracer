@@ -49,7 +49,7 @@ TParam param;
 
 
 void LoadConfigFile() {
-	CSPList list;
+	CSPList list(4);
 	if (!list.Load(param.configfile)) {
 		Message("Could not load 'options'");
 		return;
@@ -89,7 +89,7 @@ void SetConfigDefaults() {
 	param.fullscreen = true;
 	param.res_type = 0; // 0=auto / 1=800x600 / 2=1024x768 ...
 	param.perf_level = 3;	// detail level
-	param.language = std::string::npos; // If language is set to npos, ETR will try to load default system language
+	param.language = string::npos; // If language is set to npos, ETR will try to load default system language
 	param.sound_volume = 90;
 	param.music_volume = 20;
 
@@ -118,19 +118,19 @@ void SetConfigDefaults() {
 
 
 template<typename T>
-void AddItem(CSPList &list, const std::string& tag, T content) {
-	std::ostringstream os;
+void AddItem(CSPList &list, const string& tag, T content) {
+	ostringstream os;
 	os << "  [" << tag << "] " << content;
 	list.Add(os.str());
 }
 
-void AddComment(CSPList &list, const std::string& comment) {
-	std::string line = "# " + comment;
+void AddComment(CSPList &list, const string& comment) {
+	string line = "# " + comment;
 	list.Add(line);
 }
 
 void SaveConfigFile() {
-	CSPList liste;
+	CSPList liste(512);
 
 	liste.Add("# ------------------------------------------------------------------");
 	liste.Add("#   The first group of params can be adjusted ");
@@ -274,13 +274,13 @@ void InitConfig() {
 #if 0
 	char buff[256];
 
-	if (std::strcmp(arg0, "./etr") == 0) {		// start from work directory
+	if (strcmp(arg0, "./etr") == 0) {		// start from work directory
 		char *s = getcwd(buff, 256);
 		if (s==nullptr) {};
 	} else {								// start with full path
-		std::strcpy(buff, arg0);
-		if (std::strlen(buff) > 5) {
-			buff[std::strlen(buff)-3] = 0;
+		strcpy(buff, arg0);
+		if (strlen(buff) > 5) {
+			buff[strlen(buff)-3] = 0;
 		}
 	}
 

@@ -49,8 +49,8 @@ struct track_quad_t {
 };
 
 struct track_marks_t {
-	std::list<track_quad_t> quads;
-	std::list<track_quad_t>::iterator current_mark;
+	list<track_quad_t> quads;
+	list<track_quad_t>::iterator current_mark;
 };
 
 static track_marks_t track_marks;
@@ -106,7 +106,7 @@ void DrawTrackmarks() {
 
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
-	for (std::list<track_quad_t>::const_iterator q = track_marks.quads.begin(); q != track_marks.quads.end(); ++q) {
+	for (list<track_quad_t>::const_iterator q = track_marks.quads.begin(); q != track_marks.quads.end(); ++q) {
 		if (q->alpha != track_colour.a) {
 			track_colour.a = q->alpha;
 			set_material_diffuse(track_colour);
@@ -152,7 +152,7 @@ void DrawTrackmarks() {
 			glTexCoord2(q->t3);
 			glVertex3(q->v3);
 
-			std::list<track_quad_t>::const_iterator qnext = q;
+			list<track_quad_t>::const_iterator qnext = q;
 			++qnext;
 			while (qnext != track_marks.quads.end() && qnext->track_type != TRACK_TAIL) {
 				q = qnext;
@@ -180,17 +180,17 @@ void break_track_marks() {
 	if (!continuing_track)
 		return;
 
-	std::list<track_quad_t>::iterator q = track_marks.current_mark;
+	list<track_quad_t>::iterator q = track_marks.current_mark;
 	if (q != track_marks.quads.end()) {
 		q->track_type = TRACK_TAIL;
 		q->t1 = TVector2d(0.0, 0.0);
 		q->t2 = TVector2d(1.0, 0.0);
 		q->t3 = TVector2d(0.0, 1.0);
 		q->t4 = TVector2d(1.0, 1.0);
-		std::list<track_quad_t>::iterator qprev = decrementRingIterator(q);
+		list<track_quad_t>::iterator qprev = decrementRingIterator(q);
 		if (qprev != track_marks.quads.end()) {
-			qprev->t3.y = std::max(qprev->t3.y+0.5, qprev->t1.y+1.0);
-			qprev->t4.y = std::max(qprev->t3.y+0.5, qprev->t1.y+1.0);
+			qprev->t3.y = max(qprev->t3.y+0.5, qprev->t1.y+1.0);
+			qprev->t4.y = max(qprev->t3.y+0.5, qprev->t1.y+1.0);
 		}
 	}
 	continuing_track = false;
@@ -231,7 +231,7 @@ void add_track_mark(const CControl *ctrl, int *id) {
 	double left_y = Course.FindYCoord(left_wing.x, left_wing.z);
 	double right_y = Course.FindYCoord(right_wing.x, right_wing.z);
 
-	if (std::fabs(left_y-right_y) > MAX_TRACK_DEPTH) {
+	if (fabs(left_y-right_y) > MAX_TRACK_DEPTH) {
 		break_track_marks();
 		return;
 	}
@@ -246,12 +246,12 @@ void add_track_mark(const CControl *ctrl, int *id) {
 
 	if (track_marks.quads.size() < MAX_TRACK_MARKS)
 		track_marks.quads.emplace_back();
-	std::list<track_quad_t>::iterator qprev = track_marks.current_mark;
+	list<track_quad_t>::iterator qprev = track_marks.current_mark;
 	if (track_marks.current_mark == track_marks.quads.end())
 		track_marks.current_mark = track_marks.quads.begin();
 	else
 		track_marks.current_mark = incrementRingIterator(track_marks.current_mark);
-	std::list<track_quad_t>::iterator q = track_marks.current_mark;
+	list<track_quad_t>::iterator q = track_marks.current_mark;
 
 	if (!continuing_track) {
 		q->track_type = TRACK_HEAD;
@@ -285,7 +285,7 @@ void add_track_mark(const CControl *ctrl, int *id) {
 		if (qprev->track_type == TRACK_TAIL)
 			qprev->track_type = TRACK_MARK;
 	}
-	q->alpha = std::min(static_cast<int>((2*comp_depth-dist_from_surface)/(4*comp_depth)*255), 255);
+	q->alpha = min(static_cast<int>((2*comp_depth-dist_from_surface)/(4*comp_depth)*255), 255);
 	continuing_track = true;
 }
 

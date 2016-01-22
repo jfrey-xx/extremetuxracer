@@ -55,7 +55,7 @@ struct TFlake {
 };
 
 struct TFlakeArea {
-	std::vector<TFlake> flakes;
+	vector<TFlake> flakes;
 
 	float left;
 	float right;
@@ -75,7 +75,7 @@ struct TFlakeArea {
 	bool  rotate_flake;
 
 	TFlakeArea(
-	    std::size_t num_flakes,
+	    size_t num_flakes,
 	    float xrange,
 	    float ytop,
 	    float yrange,
@@ -92,8 +92,8 @@ struct TFlakeArea {
 class CFlakes {
 private:
 	TVector3d snow_lastpos;
-	std::vector<TFlakeArea> areas;
-	void MakeSnowFlake(std::size_t ar, std::size_t i);
+	vector<TFlakeArea> areas;
+	void MakeSnowFlake(size_t ar, size_t i);
 	void GenerateSnowFlakes(const CControl *ctrl);
 	void UpdateAreas(const CControl *ctrl);
 public:
@@ -155,7 +155,7 @@ private:
 
 class CCurtain {
 private:
-	std::vector<TCurtain> curtains;
+	vector<TCurtain> curtains;
 
 	void SetStartParams(const CControl *ctrl);
 public:

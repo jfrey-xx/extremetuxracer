@@ -56,15 +56,15 @@ CWinsys::CWinsys()
 	resolutions[9] = TScreenRes(1680, 1050);
 }
 
-const TScreenRes& CWinsys::GetResolution(std::size_t idx) const {
+const TScreenRes& CWinsys::GetResolution(size_t idx) const {
 	if (idx >= NUM_RESOLUTIONS || (idx == 0 && !param.fullscreen)) return auto_resolution;
 	return resolutions[idx];
 }
 
-std::string CWinsys::GetResName(std::size_t idx) const {
+string CWinsys::GetResName(size_t idx) const {
 	if (idx >= NUM_RESOLUTIONS) return "800 x 600";
 	if (idx == 0) return ("auto");
-	std::string line = Int_StrN(resolutions[idx].width);
+	string line = Int_StrN(resolutions[idx].width);
 	line += " x " + Int_StrN(resolutions[idx].height);
 	return line;
 }
@@ -105,10 +105,10 @@ void CWinsys::SetupVideoMode(const TScreenRes& resolution_) {
 		window.setFramerateLimit(param.framerate);
 
 	scale = CalcScreenScale();
-	if (param.use_quad_scale) scale = std::sqrt(scale);
+	if (param.use_quad_scale) scale = sqrt(scale);
 }
 
-void CWinsys::SetupVideoMode(std::size_t idx) {
+void CWinsys::SetupVideoMode(size_t idx) {
 	SetupVideoMode(GetResolution(idx));
 }
 
@@ -133,27 +133,27 @@ void CWinsys::Quit() {
 
 void CWinsys::Terminate() {
 	Quit();
-	std::exit(0);
+	exit(0);
 }
 
 void CWinsys::PrintJoystickInfo() const {
 	if (numJoysticks == 0) {
-		std::cout << "No joystick found\n";
+		cout << "No joystick found\n";
 		return;
 	}
-	std::cout << '\n';
+	cout << '\n';
 	for (unsigned int i = 0; i < numJoysticks; i++) {
-		std::cout << "Joystick " << i << '\n';
+		cout << "Joystick " << i << '\n';
 		int buttons = sf::Joystick::getButtonCount(i);
-		std::cout << "Joystick has " << buttons << " button" << (buttons == 1 ? "" : "s") << '\n';
-		std::cout << "Axes: ";
-		if (sf::Joystick::hasAxis(i, sf::Joystick::R)) std::cout << "R ";
-		if (sf::Joystick::hasAxis(i, sf::Joystick::U)) std::cout << "U ";
-		if (sf::Joystick::hasAxis(i, sf::Joystick::V)) std::cout << "V ";
-		if (sf::Joystick::hasAxis(i, sf::Joystick::X)) std::cout << "X ";
-		if (sf::Joystick::hasAxis(i, sf::Joystick::Y)) std::cout << "Y ";
-		if (sf::Joystick::hasAxis(i, sf::Joystick::Z)) std::cout << "Z ";
-		std::cout << '\n';
+		cout << "Joystick has " << buttons << " button" << (buttons == 1 ? "" : "s") << '\n';
+		cout << "Axes: ";
+		if (sf::Joystick::hasAxis(i, sf::Joystick::R)) cout << "R ";
+		if (sf::Joystick::hasAxis(i, sf::Joystick::U)) cout << "U ";
+		if (sf::Joystick::hasAxis(i, sf::Joystick::V)) cout << "V ";
+		if (sf::Joystick::hasAxis(i, sf::Joystick::X)) cout << "X ";
+		if (sf::Joystick::hasAxis(i, sf::Joystick::Y)) cout << "Y ";
+		if (sf::Joystick::hasAxis(i, sf::Joystick::Z)) cout << "Z ";
+		cout << '\n';
 	}
 }
 
@@ -163,7 +163,7 @@ void CWinsys::TakeScreenshot() const {
 	tex.update(window);
 	sf::Image img = tex.copyToImage();
 
-	std::string path = param.screenshot_dir;
+	string path = param.screenshot_dir;
 	path += SEP;
 	path += g_game.course->dir;
 	path += '_';

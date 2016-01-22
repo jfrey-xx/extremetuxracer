@@ -24,7 +24,6 @@ GNU General Public License for more details.
 #include "ogl.h"
 #include "physics.h"
 #include "winsys.h"
-#include <algorithm>
 
 #define MIN_CAMERA_HEIGHT  1.5
 #define ABSOLUTE_MIN_CAMERA_HEIGHT  0.3
@@ -35,7 +34,7 @@ GNU General Public License for more details.
 #define BEHIND_ORIENT_TIME_CONSTANT 0.06
 #define FOLLOW_ORBIT_TIME_CONSTANT 0.06
 #define FOLLOW_ORIENT_TIME_CONSTANT 0.06
-#define MAX_INTERPOLATION_VALUE 0.3f
+#define MAX_INTERPOLATION_VALUE 0.3
 #define BASELINE_INTERPOLATION_SPEED 4.5
 #define NO_INTERPOLATION_SPEED 2.0
 #define CAMERA_DISTANCE_INCREMENT 2
@@ -66,7 +65,7 @@ void set_view_mode(CControl *ctrl, TViewMode mode) {ctrl->viewmode = mode;}
 TVector3d interpolate_view_pos(const TVector3d& ctrl_pos1, const TVector3d& ctrl_pos2,
                                double max_vec_angle,
                                const TVector3d& pos1, const TVector3d& pos2,
-                               double dist, float dt,
+                               double dist, double dt,
                                float time_constant) {
 	static TVector3d y_vec(0.0, 1.0, 0.0);
 
@@ -78,11 +77,11 @@ TVector3d interpolate_view_pos(const TVector3d& ctrl_pos1, const TVector3d& ctrl
 
 	TQuaternion q1 = MakeRotationQuaternion(y_vec, vec1);
 	TQuaternion q2 = MakeRotationQuaternion(y_vec, vec2);
-	double alpha = std::min(MAX_INTERPOLATION_VALUE, 1.f - std::exp(-dt / time_constant));
+	double alpha = min(MAX_INTERPOLATION_VALUE, 1.0 - exp(-dt / time_constant));
 	q2 = InterpolateQuaternions(q1, q2, alpha);
 
 	vec2 = RotateVector(q2, y_vec);
-	double theta = RADIANS_TO_ANGLES(M_PI/2 - std::acos(DotProduct(vec2, y_vec)));
+	double theta = RADIANS_TO_ANGLES(M_PI/2 - acos(DotProduct(vec2, y_vec)));
 	if (theta > max_vec_angle) {
 		TVector3d axis = CrossProduct(y_vec, vec2);
 		axis.Norm();
@@ -111,7 +110,7 @@ void interpolate_view_frame(const TVector3d& up1, const TVector3d& dir1,
 	TMatrix<4, 4> cob_mat2(x2, y2, z2);
 	TQuaternion q2 = MakeQuaternionFromMatrix(cob_mat2);
 
-	double alpha = std::min(MAX_INTERPOLATION_VALUE, 1.f - std::exp(-dt / (float)time_constant));
+	double alpha = min(MAX_INTERPOLATION_VALUE, 1.0 - exp(-dt / time_constant));
 	q2 = InterpolateQuaternions(q1, q2, alpha);
 	cob_mat2 = MakeMatrixFromQuaternion(q2);
 
@@ -162,10 +161,10 @@ TVector3d MakeViewVector() {
 	                 course_angle -
 	                 CAMERA_ANGLE_ABOVE_SLOPE +
 	                 PLAYER_ANGLE_IN_CAMERA);
-	return TVector3d(0, camera_distance * std::sin(rad), camera_distance * std::cos(rad));
+	return TVector3d(0, camera_distance * sin(rad), camera_distance * cos(rad));
 }
 
-void update_view(CControl *ctrl, float dt) {
+void update_view(CControl *ctrl, double dt) {
 	if (is_stationary) {
 		glLoadMatrix(stationary_matrix);
 		return;
@@ -319,23 +318,23 @@ static char p_vertex_code[6];
 
 
 void SetupViewFrustum(const CControl *ctrl) {
-	double aspect = (double)Winsys.resolution.width/Winsys.resolution.height;
+	double aspect = (double) Winsys.resolution.width /Winsys.resolution.height;
 
 	double near_dist = NEAR_CLIP_DIST;
 	double far_dist = param.forward_clip_distance;
 	double half_fov = ANGLES_TO_RADIANS(param.fov * 0.5);
-	double half_fov_horiz = std::atan(std::tan(half_fov) * aspect);
+	double half_fov_horiz = atan(tan(half_fov) * aspect);
 
 	frustum_planes[0] = TPlane(0, 0, 1, near_dist);
 	frustum_planes[1] = TPlane(0, 0, -1, -far_dist);
 	frustum_planes[2]
-	    = TPlane(-std::cos(half_fov_horiz), 0, std::sin(half_fov_horiz), 0);
+	    = TPlane(-cos(half_fov_horiz), 0, sin(half_fov_horiz), 0);
 	frustum_planes[3]
-	    = TPlane(std::cos(half_fov_horiz), 0, std::sin(half_fov_horiz), 0);
+	    = TPlane(cos(half_fov_horiz), 0, sin(half_fov_horiz), 0);
 	frustum_planes[4]
-	    = TPlane(0, std::cos(half_fov), std::sin(half_fov), 0);
+	    = TPlane(0, cos(half_fov), sin(half_fov), 0);
 	frustum_planes[5]
-	    = TPlane(0, -std::cos(half_fov), std::sin(half_fov), 0);
+	    = TPlane(0, -cos(half_fov), sin(half_fov), 0);
 
 	for (int i=0; i<6; i++) {
 		TVector3d pt = TransformPoint(ctrl->view_mat,

@@ -27,54 +27,56 @@ GNU General Public License for more details.
 //		CFont
 // --------------------------------------------------------------------
 
+#define MAX_FONTS 36
+
 
 class CFont {
 private:
-	std::vector<sf::Font*> fonts;
-	std::map<std::string, std::size_t> fontindex;
+	vector<sf::Font*> fonts;
+	map<string, size_t> fontindex;
 
-	int curr_font;
+	int    curr_font;
 	sf::Color curr_col;
-	unsigned int curr_size;
-	float curr_fact;		// the length factor
+	float  curr_size;
+	float  curr_fact;		// the length factor
 
-	void DrawText(float x, float y, const sf::String& text, std::size_t font, unsigned int size) const;
-	void GetTextSize(const sf::String& text, float &x, float &y, std::size_t font, unsigned int size) const;
+	void DrawText(float x, float y, const sf::String& text, size_t font, float size) const;
+	void GetTextSize(const sf::String& text, float &x, float &y, size_t font, float size) const;
 public:
 	CFont();
 	~CFont();
 
 	void Clear();
-	int  LoadFont(const std::string& name, const std::string& dir, const std::string& filename);
-	int  LoadFont(const std::string& name, const std::string& path);
+	int  LoadFont(const string& name, const string& dir, const string& filename);
+	int  LoadFont(const string& name, const string& path);
 	bool LoadFontlist();
-	std::size_t GetFontIdx(const std::string &name) const;
+	size_t GetFontIdx(const string &name) const;
 	const sf::Font& getCurrentFont() const { return *fonts[curr_font]; }
-	unsigned int GetSize() const { return curr_size; }
+	float GetSize() const { return curr_size; }
 
 	// properties
-	void SetProps(const std::string &fontname, unsigned int size, const sf::Color& col);
-	void SetProps(const std::string &fontname, unsigned int size);
+	void SetProps(const string &fontname, float size, const sf::Color& col);
+	void SetProps(const string &fontname, float size);
 	void SetColor(const sf::Color& col) { curr_col = col; }
-	void SetSize(unsigned int size) { curr_size = size; }
-	void SetFont(const std::string& fontname);
+	void SetSize(float size) { curr_size = size; }
+	void SetFont(const string& fontname);
 	void SetFontFromSettings();
 
 	// auto
-	unsigned int AutoSizeN(int rel_val);	// rel_val = relative size, return: autosize
-	int AutoDistanceN(int rel_val);			// rel_val = relative dist
+	int AutoSizeN(int rel_val);	// rel_val = relative size, return: autosize
+	int AutoDistanceN(int rel_val);	// rel_val = relative dist
 
 	// draw
 	void DrawString(float x, float y, const sf::String &s) const; // sf::String class
-	void DrawString(float x, float y, const sf::String &s, const std::string &fontname, unsigned int size) const;
+	void DrawString(float x, float y, const sf::String &s, const string &fontname, float size) const;
 
 	// metrics
 	void  GetTextSize(const sf::String& text, float &x, float &y) const;
-	void  GetTextSize(const sf::String& text, float &x, float &y, const std::string &fontname, unsigned int size) const;
+	void  GetTextSize(const sf::String& text, float &x, float &y, const string &fontname, float size) const;
 	float GetTextWidth(const sf::String& text) const;
-	float GetTextWidth(const sf::String& text, const std::string &fontname, unsigned int size) const;
+	float GetTextWidth(const sf::String& text, const string &fontname, float size) const;
 
-	std::vector<std::string> MakeLineList(const char *source, float width);
+	vector<string> MakeLineList(const char *source, float width);
 };
 
 extern CFont FT;

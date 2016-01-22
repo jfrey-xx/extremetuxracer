@@ -24,7 +24,8 @@ GNU General Public License for more details.
 #include <map>
 
 #define FLOATVAL(i) (*(GLfloat*)(vnc_array+idx+(i)*sizeof(GLfloat)))
-#define BYTEVAL(i) (*(GLubyte*)(vnc_array+idx+8*sizeof(GLfloat) + i*sizeof(GLubyte)))
+#define BYTEVAL(i) (*(GLubyte*)(vnc_array+idx+8*sizeof(GLfloat) +\
+    i*sizeof(GLubyte)))
 #define STRIDE_GL_ARRAY (8 * sizeof(GLfloat) + 4 * sizeof(GLubyte))
 #define ELEV(x,y) (Fields[(x) + nx*(y)].elevation)
 #define NORM_INTERPOL 0.05
@@ -33,15 +34,18 @@ GNU General Public License for more details.
 #define NMLPOINT(x,y) TVector3d(XCD(x), ELEV(x,y), ZCD(y) )
 
 
+#define MAX_COURSES 64
+#define MAX_TERR_TYPES 64
+#define MAX_OBJECT_TYPES 128
 #define MAX_DESCRIPTION_LINES 8
 
 class TTexture;
 
 
 struct TTerrType {
-	std::string textureFile;
+	string textureFile;
 	TTexture* texture;
-	std::size_t sound;
+	size_t sound;
 	TColor3 col;
 
 	bool particles;
@@ -56,8 +60,8 @@ struct TTerrType {
 };
 
 struct TObjectType {
-	std::string name;
-	std::string textureFile;
+	string		name;
+	string		textureFile;
 	TTexture*	texture;
 	int			collectable;
 	bool		collidable;
@@ -78,8 +82,8 @@ struct TObject {
 };
 
 struct TCollidable : public TObject {
-	std::size_t tree_type;
-	TCollidable(double x, double y, double z, double height_, double diam_, std::size_t type)
+	size_t tree_type;
+	TCollidable(double x, double y, double z, double height_, double diam_, size_t type)
 		: TObject(x, y, z, height_, diam_), tree_type(type)
 	{}
 };
@@ -93,19 +97,19 @@ struct TItem : public TObject {
 };
 
 struct TCourse {
-	std::string name;
-	std::string dir;
-	std::string author;
-	std::string desc[MAX_DESCRIPTION_LINES];
-	std::size_t num_lines;
+	string name;
+	string dir;
+	string author;
+	string desc[MAX_DESCRIPTION_LINES];
+	size_t num_lines;
 	TTexture* preview;
 	TVector2d size;
 	TVector2d play_size;
 	double angle;
 	double scale;
 	TVector2d start;
-	std::size_t env;
-	std::size_t music_theme;
+	size_t env;
+	size_t music_theme;
 	double finish_brake;
 	bool use_keyframe;
 
@@ -121,24 +125,24 @@ struct CourseFields {
 
 class CCourseList {
 	std::vector<TCourse> courses;
-	std::map<std::string, std::size_t>  index;
+	map<string, size_t>  index;
 public:
-	std::string name;
+	string name;
 
 	bool Load(const std::string& dir);
 	void Free();
-	TCourse& operator[](std::size_t idx) { return courses[idx]; }
-	const TCourse& operator[](std::size_t idx) const { return courses[idx]; }
-	TCourse& operator[](std::string name_) { return courses[index.at(name_)]; }
-	const TCourse& operator[](std::string name_) const { return courses[index.at(name_)]; }
-	std::size_t size() const { return courses.size(); }
+	TCourse& operator[](size_t idx) { return courses[idx]; }
+	const TCourse& operator[](size_t idx) const { return courses[idx]; }
+	TCourse& operator[](string name_) { return courses[index.at(name_)]; }
+	const TCourse& operator[](string name_) const { return courses[index.at(name_)]; }
+	size_t size() const { return courses.size(); }
 };
 
 class CCourse {
 private:
 	const TCourse* curr_course;
-	std::map<std::string, std::size_t> ObjectIndex;
-	std::string CourseDir;
+	map<string, size_t> ObjectIndex;
+	string		CourseDir;
 
 	unsigned int nx;
 	unsigned int ny;
@@ -161,22 +165,22 @@ public:
 	CCourse();
 	~CCourse();
 
-	std::map<std::string, CCourseList> CourseLists;
-	CCourseList*				currentCourseList;
-	std::vector<TTerrType>		TerrList;
-	std::vector<TObjectType>	ObjTypes;
-	std::vector<TCollidable>	CollArr;
-	std::vector<TItem>			NocollArr;
-	std::vector<TPolyhedron>	PolyArr;
+	map<string, CCourseList> CourseLists;
+	CCourseList*             currentCourseList;
+	vector<TTerrType>	TerrList;
+	vector<TObjectType>	ObjTypes;
+	vector<TCollidable>	CollArr;
+	vector<TItem>		NocollArr;
+	vector<TPolyhedron>	PolyArr;
 
-	std::vector<CourseFields> Fields;
+	vector<CourseFields> Fields;
 	GLubyte		*vnc_array;
 
-	CCourseList* getGroup(std::size_t index);
+	CCourseList* getGroup(size_t index);
 
 	void ResetCourse();
-	TCourse* GetCourse(const std::string& group, const std::string& dir);
-	std::size_t GetCourseIdx(const TCourse* course) const;
+	TCourse* GetCourse(const string& group, const string& dir);
+	size_t GetCourseIdx(const TCourse* course) const;
 	void FreeCourseList();
 	bool LoadCourseList();
 	bool LoadCourse(TCourse* course);
@@ -191,9 +195,9 @@ public:
 	double GetCourseAngle() const { return curr_course->angle; }
 	double GetBaseHeight(double distance) const;
 	double GetMaxHeight(double distance) const;
-	std::size_t GetEnv() const;
+	size_t GetEnv() const;
 	const TVector2d& GetStartPoint() const { return start_pt; }
-	const TPolyhedron& GetPoly(std::size_t type) const;
+	const TPolyhedron& GetPoly(size_t type) const;
 	void MirrorCourse();
 
 	void GetIndicesForPoint(double x, double z, unsigned int* x0, unsigned int* y0, unsigned int* x1, unsigned int* y1) const;

@@ -21,8 +21,14 @@ GNU General Public License for more details.
 #include "bh.h"
 #include "matrices.h"
 
+using namespace std;
 
-#define clamp(minimum, x, maximum) (std::max(std::min(x, maximum), minimum))
+
+#define clamp(minimum, x, maximum) (max(min(x, maximum), minimum))
+
+#ifndef ROUND_TO_NEAREST
+#	define ROUND_TO_NEAREST(x) ((int) ((x)+0.5))
+#endif
 
 #ifndef M_PI
 #	define M_PI 3.1415926535
@@ -67,11 +73,6 @@ extern const sf::Color colMBackgr;
 extern const sf::Color colLBackgr;
 extern const sf::Color colMess;
 extern const sf::Color colSky;
-extern const sf::Color colBronze;
-extern const sf::Color colSilver;
-extern const sf::Color colGold;
-extern const sf::Color colGreen;
-
 
 // --------------------------------------------------------------------
 //				print utils
@@ -79,9 +80,9 @@ extern const sf::Color colGreen;
 // some simple functions to print out values on the
 // terminal. Only used for development.
 void	PrintInt(const int val);
-void	PrintInt(const std::string& s, const int val);
+void	PrintInt(const string& s, const int val);
 void	PrintStr(const char *val);
-void	PrintString(const std::string& s);
+void	PrintString(const string& s);
 void	PrintDouble(const double val);
 void	PrintVector(const TVector3d& v);
 void	PrintVector4(const TVector4d& v);
@@ -96,8 +97,8 @@ void	PrintQuaternion(const TQuaternion& q);
 //				file utils
 // --------------------------------------------------------------------
 
-bool	FileExists(const std::string& filename);
-bool	FileExists(const std::string& dir, const std::string& filename);
+bool	FileExists(const string& filename);
+bool	FileExists(const string& dir, const string& filename);
 bool	DirExists(const char *dirname);
 
 // --------------------------------------------------------------------
@@ -106,8 +107,8 @@ bool	DirExists(const char *dirname);
 
 void	Message(const char *msg, const char *desc);
 void	Message(const char *msg);
-void	Message(const std::string& a, const std::string& b);
-void	Message(const std::string& a);
+void	Message(const string& a, const string& b);
+void	Message(const string& a);
 void	SaveMessages();
 
 // --------------------------------------------------------------------
@@ -115,7 +116,7 @@ void	SaveMessages();
 // --------------------------------------------------------------------
 
 void GetTimeComponents(double time, int *min, int *sec, int *hundr);
-std::string GetTimeString();
+string GetTimeString();
 
 
 #endif
