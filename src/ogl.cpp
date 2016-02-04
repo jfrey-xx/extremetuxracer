@@ -70,15 +70,15 @@ void PrintGLInfo() {
 	Message("Gl vendor: ", (char*)glGetString(GL_VENDOR));
 	Message("Gl renderer: ", (char*)glGetString(GL_RENDERER));
 	Message("Gl version: ", (char*)glGetString(GL_VERSION));
-	std::string extensions = (char*)glGetString(GL_EXTENSIONS);
+	string extensions = (char*)glGetString(GL_EXTENSIONS);
 	Message("");
 	Message("Gl extensions:");
 	Message("");
 
-	std::size_t oldpos = 0;
-	std::size_t pos;
-	while ((pos = extensions.find(' ', oldpos)) != std::string::npos) {
-		std::string s = extensions.substr(oldpos, pos-oldpos);
+	size_t oldpos = 0;
+	size_t pos;
+	while ((pos = extensions.find(' ', oldpos)) != string::npos) {
+		string s = extensions.substr(oldpos, pos-oldpos);
 		Message(s);
 		oldpos = pos+1;
 	}
@@ -90,21 +90,21 @@ void PrintGLInfo() {
 			case GL_INT: {
 				GLint int_val;
 				glGetIntegerv(gl_values[i].value, &int_val);
-				std::string ss = Int_StrN(int_val);
+				string ss = Int_StrN(int_val);
 				Message(gl_values[i].name, ss);
 				break;
 			}
 			case GL_FLOAT: {
 				GLfloat float_val;
 				glGetFloatv(gl_values[i].value, &float_val);
-				std::string ss = Float_StrN(float_val, 2);
+				string ss = Float_StrN(float_val, 2);
 				Message(gl_values[i].name, ss);
 				break;
 			}
 			case GL_UNSIGNED_BYTE: {
 				GLboolean boolean_val;
 				glGetBooleanv(gl_values[i].value, &boolean_val);
-				std::string ss = Int_StrN(boolean_val);
+				string ss = Int_StrN(boolean_val);
 				Message(gl_values[i].name, ss);
 				break;
 			}
@@ -137,7 +137,7 @@ void set_material(const sf::Color& diffuse_colour, const sf::Color& specular_col
 	};
 	glMaterialiv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_specular);
 
-	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, specular_exp);
+	glMateriali(GL_FRONT_AND_BACK, GL_SHININESS, specular_exp);
 }
 
 void ClearRenderContext() {
@@ -389,7 +389,7 @@ void set_gl_options(TRenderMode mode) {
 	}
 }
 
-static std::stack<TRenderMode> modestack;
+static stack<TRenderMode> modestack;
 void PushRenderMode(TRenderMode mode) {
 	if (currentMode != mode)
 		set_gl_options(mode);
@@ -429,9 +429,9 @@ void glTexCoord2(const TVector2d& vec) {
 }
 
 void glLoadMatrix(const TMatrix<4, 4>& mat) {
-	glLoadMatrixd(mat.data());
+	glLoadMatrixd((const double*) mat.data());
 }
 
 void glMultMatrix(const TMatrix<4, 4>& mat) {
-	glMultMatrixd(mat.data());
+	glMultMatrixd((const double*) mat.data());
 }

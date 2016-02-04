@@ -24,10 +24,10 @@ GNU General Public License for more details.
 class CWinsys;
 
 class State {
-	State(const State&) = delete;
-	State& operator=(const State&) = delete;
+	State(const State&);
+	State& operator=(const State&);
 protected:
-	State() = default;
+	State() {}
 public:
 	class Manager {
 		friend class State;
@@ -40,7 +40,7 @@ public:
 		bool quit;
 		explicit Manager(CWinsys& winsys) : Winsys(winsys), previous(nullptr), current(nullptr), next(nullptr), quit(false) {}
 		Manager(const Manager&);
-		Manager& operator=(const Manager&) = delete;
+		Manager& operator=(const Manager&);
 		~Manager();
 
 		void PollEvent();

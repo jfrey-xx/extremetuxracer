@@ -21,6 +21,7 @@ GNU General Public License for more details.
 #include "bh.h"
 #include <vector>
 
+#define MAX_LANGUAGES 32
 #define NUM_COMMON_TEXTS 99
 #define MAX_COMMON_TEXT_LINES NUM_COMMON_TEXTS*2
 
@@ -31,7 +32,7 @@ Name convention:
 ---------------------------------------------------------------------*/
 
 struct TLang {
-	std::string lang;
+	string lang;
 	sf::String language;
 };
 
@@ -39,17 +40,17 @@ class CTranslation {
 private:
 	sf::String texts[NUM_COMMON_TEXTS];
 public:
-	std::vector<TLang> languages;
+	vector<TLang> languages;
 
 	void LoadLanguages();
-	const sf::String& GetLanguage(std::size_t idx) const;
+	const sf::String& GetLanguage(size_t idx) const;
 	void SetDefaultTranslations();
-	const sf::String& Text(std::size_t idx) const;
-	void LoadTranslations(std::size_t langidx);
-	void ChangeLanguage(std::size_t langidx);
-	static std::string GetSystemDefaultLang();
-	std::size_t GetSystemDefaultLangIdx() const;
-	std::size_t GetLangIdx(const std::string& lang) const;
+	const sf::String& Text(size_t idx) const;
+	void LoadTranslations(size_t langidx);
+	void ChangeLanguage(size_t langidx);
+	static string GetSystemDefaultLang();
+	size_t GetSystemDefaultLangIdx() const;
+	size_t GetLangIdx(const string& lang) const;
 };
 
 extern CTranslation Trans;

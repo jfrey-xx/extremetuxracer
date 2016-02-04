@@ -1,14 +1,13 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ([2.64])
-AC_INIT([Extreme Tux Racer], [0.7.99], [https://sourceforge.net/projects/extremetuxracer],
-        [etr], [http://sourceforge.net/projects/extremetuxracer])
+AC_PREREQ([2.61])
+AC_INIT([etr], [0.7.1], [https://sourceforge.net/projects/extremetuxracer])
 AC_CONFIG_SRCDIR([src/gui.cpp])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADERS([etr_config.h])
 
-AM_INIT_AUTOMAKE([subdir-objects dist-xz dist-zip no-dist-gzip])
+AM_INIT_AUTOMAKE([dist-xz dist-zip])
 
 AC_CANONICAL_HOST
 
@@ -40,21 +39,21 @@ esac
 AC_FUNC_MALLOC
 AC_CHECK_FUNCS([floor getcwd memmove memset mkdir pow sqrt strchr strdup])
 
-PKG_CHECK_MODULES([SFML_AUDIO], [sfml-audio >= 2.3],
+PKG_CHECK_MODULES([SFML_AUDIO], [sfml-audio >= 2.2],
 [
   CPPFLAGS="${CPPFLAGS} $SFML_AUDIO_CFLAGS"
   LIBS="${LIBS} $SFML_AUDIO_LIBS"
 ],
 [AC_MSG_ERROR([sfml-audio not found])])
 
-PKG_CHECK_MODULES([SFML_WINDOW], [sfml-window >= 2.3],
+PKG_CHECK_MODULES([SFML_WINDOW], [sfml-window >= 2.2],
 [
   CPPFLAGS="${CPPFLAGS} $SFML_WINDOW_CFLAGS"
   LIBS="${LIBS} $SFML_WINDOW_LIBS"
 ],
 [AC_MSG_ERROR([sfml-window not found])])
 
-PKG_CHECK_MODULES([SFML_GRAPHICS], [sfml-graphics >= 2.3],
+PKG_CHECK_MODULES([SFML_GRAPHICS], [sfml-graphics >= 2.2],
 [
   CPPFLAGS="${CPPFLAGS} $SFML_GRAPHICS_CFLAGS"
   LIBS="${LIBS} $SFML_GRAPHICS_LIBS"

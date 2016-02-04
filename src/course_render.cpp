@@ -33,8 +33,8 @@ GNU General Public License for more details.
 static const bool clip_course = true;
 
 void setup_course_tex_gen() {
-	static const GLfloat xplane[4] = {1.f / TEX_SCALE, 0.f, 0.f, 0.f };
-	static const GLfloat zplane[4] = {0.f, 0.f, 1.f / TEX_SCALE, 0.f };
+	static const GLfloat xplane[4] = {1.0 / TEX_SCALE, 0.0, 0.0, 0.0 };
+	static const GLfloat zplane[4] = {0.0, 0.0, 1.0 / TEX_SCALE, 0.0 };
 	glTexGenfv(GL_S, GL_OBJECT_PLANE, xplane);
 	glTexGenfv(GL_T, GL_OBJECT_PLANE, zplane);
 }
@@ -50,7 +50,7 @@ void RenderCourse() {
 }
 
 void DrawTrees() {
-	std::size_t tree_type = -1;
+	size_t			tree_type = -1;
 	const CControl*	ctrl = g_game.player->ctrl;
 
 	ScopedRenderMode rm(TREES);
@@ -61,7 +61,7 @@ void DrawTrees() {
 	set_material(colWhite, colBlack, 1.0);
 
 	// Trees
-	for (std::size_t i = 0; i< Course.CollArr.size(); i++) {
+	for (size_t i = 0; i< Course.CollArr.size(); i++) {
 		if (clip_course) {
 			if (ctrl->viewpos.z - Course.CollArr[i].pt.z > fwd_clip_limit) continue;
 			if (Course.CollArr[i].pt.z - ctrl->viewpos.z > bwd_clip_limit) continue;
@@ -118,7 +118,7 @@ void DrawTrees() {
 	// Items
 	const TObjectType* item_type = nullptr;
 
-	for (std::size_t i = 0; i< Course.NocollArr.size(); i++) {
+	for (size_t i = 0; i< Course.NocollArr.size(); i++) {
 		if (Course.NocollArr[i].collectable == 0 || Course.NocollArr[i].type.drawable == false) continue;
 		if (clip_course) {
 			if (ctrl->viewpos.z - Course.NocollArr[i].pt.z > fwd_clip_limit) continue;
@@ -154,10 +154,18 @@ void DrawTrees() {
 		};
 
 		const GLfloat vtx[] = {
-			-itemRadius*normal.z, 0.f,        itemRadius*normal.x,
-			itemRadius*normal.z,  0.f,        -itemRadius*normal.x,
-			itemRadius*normal.z,  itemHeight, -itemRadius*normal.x,
-			-itemRadius*normal.z, itemHeight, itemRadius*normal.x
+                  static_cast<GLfloat>(-itemRadius*normal.z),
+                  0.0,
+                  static_cast<GLfloat>(itemRadius*normal.x),
+                  static_cast<GLfloat>(itemRadius*normal.z),
+                  0.0,
+                  static_cast<GLfloat>(-itemRadius*normal.x),
+                  static_cast<GLfloat>(itemRadius*normal.z),
+                  static_cast<GLfloat>(itemHeight),
+                  static_cast<GLfloat>(-itemRadius*normal.x),
+                  static_cast<GLfloat>(-itemRadius*normal.z),
+                  static_cast<GLfloat>(itemHeight),
+                  static_cast<GLfloat>(itemRadius*normal.x)
 		};
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);

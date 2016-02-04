@@ -36,57 +36,57 @@ class TTexture;
 
 struct TRace {
 	TCourse* course;
-	std::size_t light;
+	size_t light;
 	int snow;
 	int wind;
 	TVector3i herrings;
 	TVector3d time;
-	std::size_t music_theme;
+	size_t music_theme;
 
-	TRace(TCourse* course_, std::size_t light_, int snow_, int wind_, const TVector3i& herrings_, const TVector3d& time_, std::size_t music_theme_)
+	TRace(TCourse* course_, size_t light_, int snow_, int wind_, const TVector3i& herrings_, const TVector3d& time_, size_t music_theme_)
 		: course(course_), light(light_), snow(snow_), wind(wind_), herrings(herrings_), time(time_), music_theme(music_theme_)
 	{}
 };
 
 struct TCup {
-	std::string cup;
-	std::string name;
-	std::string desc;
-	std::vector<TRace*> races;
+	string cup;
+	string name;
+	string desc;
+	vector<TRace*> races;
 	bool Unlocked;
 
-	TCup(const std::string& cup_, const std::string& name_, const std::string& desc_)
+	TCup(const string& cup_, const string& name_, const string& desc_)
 		: cup(cup_), name(name_), desc(desc_), Unlocked(false)
 	{}
 };
 
 struct TEvent {
-	std::string name;
-	std::vector<TCup*> cups;
+	string name;
+	vector<TCup*> cups;
 
-	explicit TEvent(const std::string& name_)
+	explicit TEvent(const string& name_)
 		: name(name_)
 	{}
 };
 
 class CEvents {
 private:
-	std::map<std::string, std::size_t> RaceIndex;
-	std::map<std::string, std::size_t> CupIndex;
-	std::map<std::string, std::size_t> EventIndex;
+	map<string, size_t> RaceIndex;
+	map<string, size_t> CupIndex;
+	map<string, size_t> EventIndex;
 public:
-	std::vector<TRace> RaceList;
-	std::vector<TCup> CupList;
-	std::vector<TEvent> EventList;
+	vector<TRace> RaceList;
+	vector<TCup> CupList;
+	vector<TEvent> EventList;
 	bool LoadEventList();
-	std::size_t GetRaceIdx(const std::string& race) const;
-	std::size_t GetCupIdx(const std::string& cup) const;
-	std::size_t GetEventIdx(const std::string& event) const;
-	const std::string& GetCup(std::size_t event, std::size_t cup) const;
-	const std::string& GetCupTrivialName(std::size_t event, std::size_t cup) const;
+	size_t GetRaceIdx(const string& race) const;
+	size_t GetCupIdx(const string& cup) const;
+	size_t GetEventIdx(const string& event) const;
+	const string& GetCup(size_t event, size_t cup) const;
+	const string& GetCupTrivialName(size_t event, size_t cup) const;
 
-	void MakeUnlockList(const std::string& unlockstr);
-	bool IsUnlocked(std::size_t event, std::size_t cup) const;
+	void MakeUnlockList(const string& unlockstr);
+	bool IsUnlocked(size_t event, size_t cup) const;
 };
 
 extern CEvents Events;
@@ -95,58 +95,62 @@ extern CEvents Events;
 //				player
 // --------------------------------------------------------------------
 
+#define MAX_PLAYERS 16
+#define MAX_AVATARS 32
+
 struct TAvatar {
-	std::string filename;
+	string filename;
 	TTexture* texture;
 
-	TAvatar(const std::string& filename_, TTexture* texture_)
+	TAvatar(const string& filename_, TTexture* texture_)
 		: filename(filename_), texture(texture_)
 	{}
 };
 
 struct TPlayer {
-	std::string name;
+	string name;
 	CControl *ctrl;
-	std::string funlocked;
+	string funlocked;
 	const TAvatar* avatar;
 
-	TPlayer(const std::string& name_ = emptyString, const TAvatar* avatar_ = nullptr)
+	TPlayer(const string& name_ = emptyString, const TAvatar* avatar_ = nullptr)
 		: name(name_), ctrl(nullptr), avatar(avatar_)
 	{}
 };
 
 class CPlayers {
 private:
-	std::vector<TPlayer> plyr;
+	vector<TPlayer> plyr;
 	void SetDefaultPlayers();
-	std::vector<TAvatar> avatars;
+	vector<TAvatar> avatars;
 
-	const TAvatar* FindAvatar(const std::string& name) const;
+	const TAvatar* FindAvatar(const string& name) const;
 public:
 	~CPlayers();
 
-	TPlayer* GetPlayer(std::size_t index) { return &plyr[index]; }
-	void AddPassedCup(const std::string& cup);
-	void AddPlayer(const std::string& name, const std::string& avatar);
+	TPlayer* GetPlayer(size_t index) { return &plyr[index]; }
+	void AddPassedCup(const string& cup);
+	void AddPlayer(const string& name, const string& avatar);
 	bool LoadPlayers();
 	void SavePlayers() const;
 	void ResetControls();
-	void AllocControl(std::size_t player);
+	void AllocControl(size_t player);
 	bool LoadAvatars();
-	std::size_t numAvatars() const { return avatars.size(); }
-	std::size_t numPlayers() const { return plyr.size(); }
+	size_t numAvatars() const { return avatars.size(); }
+	size_t numPlayers() const { return plyr.size(); }
 
-	TTexture* GetAvatarTexture(std::size_t avatar) const;
-	const std::string& GetDirectAvatarName(std::size_t avatar) const;
+	TTexture* GetAvatarTexture(size_t avatar) const;
+	const string& GetDirectAvatarName(size_t avatar) const;
 };
 
 extern CPlayers Players;
 
 // -------------------------------- characters ------------------------
+#define MAX_CHARACTERS 16
 
 struct TCharacter {
-	std::string name;
-	std::string dir;
+	string name;
+	string dir;
 	TTexture* preview;
 	CCharShape *shape;
 	CKeyframe frames[NUM_FRAME_TYPES];
@@ -158,7 +162,7 @@ struct TCharacter {
 
 class CCharacter {
 public:
-	std::vector<TCharacter> CharList;
+	vector<TCharacter> CharList;
 
 	~CCharacter();
 

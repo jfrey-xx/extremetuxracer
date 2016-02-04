@@ -70,7 +70,7 @@ void CReset::Loop(float time_step) {
 	if (elapsed_time > BLINK_IN_PLACE_TIME && !position_reset) {
 		// Determine optimal location for reset
 		int best_loc = -1;
-		for (std::size_t i = 0; i < Course.NocollArr.size(); i++) {
+		for (size_t i = 0; i < Course.NocollArr.size(); i++) {
 			if (Course.NocollArr[i].type.reset_point && Course.NocollArr[i].pt.z > ctrl->cpos.z) {
 				if (best_loc == -1 || Course.NocollArr[i].pt.z < Course.NocollArr[best_loc].pt.z) {
 					best_loc = (int)i;
@@ -80,10 +80,10 @@ void CReset::Loop(float time_step) {
 
 		if (best_loc == -1) { // Fallback in case there are no reset points
 			ctrl->cpos.x = Course.GetDimensions().x/2.0;
-			ctrl->cpos.z = std::min(ctrl->cpos.z + 10, -1.0);
+			ctrl->cpos.z = min(ctrl->cpos.z + 10, -1.0);
 		} else if (Course.NocollArr[best_loc].pt.z <= ctrl->cpos.z) {
 			ctrl->cpos.x = Course.GetDimensions().x/2.0;
-			ctrl->cpos.z = std::min(ctrl->cpos.z + 10, -1.0);
+			ctrl->cpos.z = min(ctrl->cpos.z + 10, -1.0);
 		} else {
 			ctrl->cpos.x = Course.NocollArr[best_loc].pt.x;
 			ctrl->cpos.z = Course.NocollArr[best_loc].pt.z;

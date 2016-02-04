@@ -23,12 +23,12 @@ template<int ix, int iy>
 class TMatrix {
 	double _data[ix][iy];
 public:
-	constexpr TMatrix() = default;
+	TMatrix() {}
 	TMatrix(const TVector3d& w1, const TVector3d& w2, const TVector3d& w3);
 
 	double* operator[](int index) { return _data[index]; }
-	constexpr const double* operator[](int index) const { return _data[index]; }
-	constexpr const double* data() const { return (double*)_data; }
+	const double* operator[](int index) const { return _data[index]; }
+	const double* data() const { return (double*)_data; }
 
 	void SetIdentity();
 	void SetRotationMatrix(double angle, char axis);

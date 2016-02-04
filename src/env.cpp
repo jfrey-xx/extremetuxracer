@@ -35,7 +35,7 @@ static const float def_diff[]   = {1.f,   0.9f,  1.f,   1.f};
 static const float def_spec[]   = {0.6f,  0.6f,  0.6f,  1.f};
 static const float def_pos[]    = {1.f,   2.f,   2.f,   0.f};
 static const float def_fogcol[] = {0.9f,  0.9f,  1.f,   0.f};
-static const sf::Color def_partcol(204, 204, 230, 0);
+static const sf::Color def_partcol(0.8*255, 0.8*255, 0.9*255, 0);
 
 void TLight::Enable(GLenum num) const {
 	glLightfv(num, GL_POSITION, position);
@@ -47,10 +47,13 @@ void TLight::Enable(GLenum num) const {
 
 CEnvironment Env;
 
-CEnvironment::CEnvironment()
-	: lightcond{"sunny", "cloudy", "evening", "night"} {
+CEnvironment::CEnvironment() {
 	EnvID = -1;
-	for (std::size_t i = 0; i < 4; i++)
+	lightcond[0] = "sunny";
+	lightcond[1] = "cloudy";
+	lightcond[2] = "evening";
+	lightcond[3] = "night";
+	for (size_t i = 0; i < 4; i++)
 		LightIndex[lightcond[i]] = i;
 	Skybox = nullptr;
 
@@ -121,14 +124,14 @@ void CEnvironment::Reset() {
 }
 
 bool CEnvironment::LoadEnvironmentList() {
-	CSPList list(true);
+	CSPList list(32, true);
 	if (!list.Load(param.env_dir2, "environment.lst")) {
 		Message("could not load environment.lst");
 		return false;
 	}
 
 	locs.resize(list.size());
-	std::size_t i = 0;
+	size_t i = 0;
 	for (CSPList::const_iterator line = list.cbegin(); line != list.cend(); ++line, i++) {
 		locs[i].name = SPStrN(*line, "location");
 		locs[i].high_res = SPBoolN(*line, "high_res", false);
@@ -137,16 +140,16 @@ bool CEnvironment::LoadEnvironmentList() {
 	return true;
 }
 
-std::string CEnvironment::GetDir(std::size_t location, std::size_t light) const {
+string CEnvironment::GetDir(size_t location, size_t light) const {
 	if (location >= locs.size()) return "";
 	if (light >= 4) return "";
-	std::string res =
+	string res =
 	    param.env_dir2 + SEP +
 	    locs[location].name + SEP + lightcond[light];
 	return res;
 }
 
-void CEnvironment::LoadSkyboxSide(std::size_t index, const std::string& EnvDir, const std::string& name, bool high_res) {
+void CEnvironment::LoadSkyboxSide(size_t index, const string& EnvDir, const string& name, bool high_res) {
 	bool loaded = false;
 	if (param.perf_level > 3 && high_res)
 		loaded = Skybox[index].Load(EnvDir, name + "H.png");
@@ -155,7 +158,7 @@ void CEnvironment::LoadSkyboxSide(std::size_t index, const std::string& EnvDir, 
 		Skybox[index].Load(EnvDir, name + ".png");
 }
 
-void CEnvironment::LoadSkybox(const std::string& EnvDir, bool high_res) {
+void CEnvironment::LoadSkybox(const string& EnvDir, bool high_res) {
 	Skybox = new TTexture[param.full_skybox ? 6 : 3];
 	LoadSkyboxSide(0, EnvDir, "front", high_res);
 	LoadSkyboxSide(1, EnvDir, "left", high_res);
@@ -167,17 +170,17 @@ void CEnvironment::LoadSkybox(const std::string& EnvDir, bool high_res) {
 	}
 }
 
-void CEnvironment::LoadLight(const std::string& EnvDir) {
-	static const std::string idxstr = "[fog]-1[0]0[1]1[2]2[3]3[4]4[5]5[6]6";
+void CEnvironment::LoadLight(const string& EnvDir) {
+	static const string idxstr = "[fog]-1[0]0[1]1[2]2[3]3[4]4[5]5[6]6";
 
-	CSPList list;
+	CSPList list(24);
 	if (!list.Load(EnvDir, "light.lst")) {
 		Message("could not load light file");
 		return;
 	}
 
 	for (CSPList::const_iterator line = list.cbegin(); line != list.cend(); ++line) {
-		std::string item = SPStrN(*line, "light", "none");
+		string item = SPStrN(*line, "light", "none");
 		int idx = SPIntN(idxstr, item, -1);
 		if (idx < 0) {
 			fog.is_on = SPBoolN(*line, "fog", true);
@@ -196,7 +199,7 @@ void CEnvironment::LoadLight(const std::string& EnvDir) {
 	}
 }
 
-void CEnvironment::DrawSkybox(const TVector3d& pos) const {
+void CEnvironment::DrawSkybox(const TVector3d& pos) {
 	ScopedRenderMode rm(SKY);
 
 #if defined (OS_LINUX)
@@ -207,7 +210,7 @@ void CEnvironment::DrawSkybox(const TVector3d& pos) const {
 	static const float bb = 0.995f;
 #endif
 
-	glColor4ub(255, 255, 255, 255);
+	glColor4f(1.0, 1.0, 1.0, 1.0);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
 	glPushMatrix();
 	glTranslate(pos);
@@ -297,7 +300,7 @@ void CEnvironment::DrawSkybox(const TVector3d& pos) const {
 	glPopMatrix();
 }
 
-void CEnvironment::DrawFog() const {
+void CEnvironment::DrawFog() {
 	if (!fog.is_on)
 		return;
 
@@ -314,12 +317,12 @@ void CEnvironment::DrawFog() const {
 
 	// --------------- calculate the planes ---------------------------
 
-	double slope = std::tan(ANGLES_TO_RADIANS(Course.GetCourseAngle()));
+	double slope = tan(ANGLES_TO_RADIANS(Course.GetCourseAngle()));
 //	TPlane left_edge_plane = MakePlane (1.0, 0.0, 0.0, 0.0);
 //	TPlane right_edge_plane = MakePlane (-1.0, 0.0, 0.0, Course.width);
 
 	bottom_plane.nml = TVector3d(0.0, 1, -slope);
-	double height = Course.GetBaseHeight(0);
+	float height = Course.GetBaseHeight(0);
 	bottom_plane.d = -height * bottom_plane.nml.y;
 
 	top_plane.nml = bottom_plane.nml;
@@ -343,29 +346,29 @@ void CEnvironment::DrawFog() const {
 	glEnable(GL_FOG);
 
 	// only the alpha channel is used
-	static const GLubyte bottom_dens[4]     = { 0, 0, 0, 255 };
-	static const GLubyte top_dens[4]        = { 0, 0, 0, 230 };
-	static const GLubyte leftright_dens[4]  = { 0, 0, 0, 77 };
-	static const GLubyte top_bottom_dens[4] = { 0, 0, 0, 0 };
+	static const GLfloat bottom_dens[4]     = { 0, 0, 0, 1.0 };
+	static const GLfloat top_dens[4]        = { 0, 0, 0, 0.9 };
+	static const GLfloat leftright_dens[4]  = { 0, 0, 0, 0.3 };
+	static const GLfloat top_bottom_dens[4] = { 0, 0, 0, 0.0 };
 
 	glBegin(GL_QUAD_STRIP);
-	glColor4ubv(bottom_dens);
+	glColor4fv(bottom_dens);
 	glVertex3(bottomleft);
 	glVertex3(bottomright);
 	glVertex3(left);
 	glVertex3(right);
 
-	glColor4ubv(top_dens);
+	glColor4fv(top_dens);
 	glVertex3(topleft);
 	glVertex3(topright);
 
-	glColor4ubv(leftright_dens);
+	glColor4fv(leftright_dens);
 	vpoint = topleft + leftvec;
 	glVertex3(vpoint);
 	vpoint = topright + rightvec;
 	glVertex3(vpoint);
 
-	glColor4ubv(top_bottom_dens);
+	glColor4fv(top_bottom_dens);
 	vpoint = topleft + 3.0 * leftvec;
 	glVertex3(vpoint);
 	vpoint = topright + 3.0 * rightvec;
@@ -374,19 +377,19 @@ void CEnvironment::DrawFog() const {
 }
 
 
-void CEnvironment::LoadEnvironment(std::size_t loc, std::size_t light) {
+void CEnvironment::LoadEnvironment(size_t loc, size_t light) {
 	if (loc >= locs.size()) loc = 0;
 	if (light >= 4) light = 0;
 	// remember: with (example) 3 locations and 4 lights there
 	// are 12 different environments
-	std::size_t env_id = loc * 100 + light;
+	size_t env_id = loc * 100 + light;
 
 	if (env_id == EnvID)
 		return; // Already loaded
 	EnvID = env_id;
 
 	// Set directory. The dir is used several times.
-	std::string EnvDir = GetDir(loc, light);
+	string EnvDir = GetDir(loc, light);
 
 	// Load skybox. If the sky can't be loaded for any reason, the
 	// texture id's are set to 0 and the sky will not be drawn.
@@ -400,10 +403,10 @@ void CEnvironment::LoadEnvironment(std::size_t loc, std::size_t light) {
 	LoadLight(EnvDir);
 }
 
-std::size_t CEnvironment::GetEnvIdx(const std::string& tag) const {
+size_t CEnvironment::GetEnvIdx(const string& tag) const {
 	return EnvIndex.at(tag);
 }
 
-std::size_t CEnvironment::GetLightIdx(const std::string& tag) const {
+size_t CEnvironment::GetLightIdx(const string& tag) const {
 	return LightIndex.at(tag);
 }

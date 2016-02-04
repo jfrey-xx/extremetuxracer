@@ -34,7 +34,7 @@ GNU General Public License for more details.
 CEvents Events;
 
 bool CEvents::LoadEventList() {
-	CSPList list;
+	CSPList list(256);
 
 	if (!list.Load(param.common_course_dir, "events.lst")) {
 		Message("could not load events.lst");
@@ -66,7 +66,7 @@ bool CEvents::LoadEventList() {
 			int num = SPIntN(*line, "num", 0);
 			CupList.back().races.resize(num);
 			for (int ii=0; ii<num; ii++) {
-				std::string race = SPStrN(*line, Int_StrN(ii+1));
+				string race = SPStrN(*line, Int_StrN(ii+1));
 				CupList.back().races[ii] = &RaceList[GetRaceIdx(race)];
 			}
 		}
@@ -81,7 +81,7 @@ bool CEvents::LoadEventList() {
 			int num = SPIntN(*line, "num", 0);
 			EventList.back().cups.resize(num);
 			for (int ii=0; ii<num; ii++) {
-				std::string cup = SPStrN(*line, Int_StrN(ii+1));
+				string cup = SPStrN(*line, Int_StrN(ii+1));
 				EventList.back().cups[ii] = &CupList[GetCupIdx(cup)];
 			}
 		}
@@ -91,40 +91,40 @@ bool CEvents::LoadEventList() {
 	return true;
 }
 
-std::size_t CEvents::GetRaceIdx(const std::string& race) const {
+size_t CEvents::GetRaceIdx(const string& race) const {
 	return RaceIndex.at(race);
 }
 
-std::size_t CEvents::GetCupIdx(const std::string& cup) const {
+size_t CEvents::GetCupIdx(const string& cup) const {
 	return CupIndex.at(cup);
 }
 
-std::size_t CEvents::GetEventIdx(const std::string& event) const {
+size_t CEvents::GetEventIdx(const string& event) const {
 	return EventIndex.at(event);
 }
 
-const std::string& CEvents::GetCup(std::size_t event, std::size_t cup) const {
+const string& CEvents::GetCup(size_t event, size_t cup) const {
 	if (event >= EventList.size()) return errorString;
 	if (cup >= EventList[event].cups.size()) return errorString;
 	return EventList[event].cups[cup]->cup;
 }
 
-const std::string& CEvents::GetCupTrivialName(std::size_t event, std::size_t cup) const {
+const string& CEvents::GetCupTrivialName(size_t event, size_t cup) const {
 	if (event >= EventList.size()) return errorString;
 	if (cup >= EventList[event].cups.size()) return errorString;
 	return EventList[event].cups[cup]->name;
 }
 
-void CEvents::MakeUnlockList(const std::string& unlockstr) {
-	for (std::size_t event=0; event<EventList.size(); event++) {
-		for (std::size_t cup=0; cup<EventList[event].cups.size(); cup++) {
+void CEvents::MakeUnlockList(const string& unlockstr) {
+	for (size_t event=0; event<EventList.size(); event++) {
+		for (size_t cup=0; cup<EventList[event].cups.size(); cup++) {
 			EventList[event].cups[cup]->Unlocked = false;
 		}
 	}
-	for (std::size_t event=0; event<EventList.size(); event++) {
-		for (std::size_t cup=0; cup<EventList[event].cups.size(); cup++) {
-			const std::string& cp = GetCup(event, cup);
-			bool passed = SPosN(unlockstr, cp) != std::string::npos;
+	for (size_t event=0; event<EventList.size(); event++) {
+		for (size_t cup=0; cup<EventList[event].cups.size(); cup++) {
+			const string& cp = GetCup(event, cup);
+			bool passed = SPosN(unlockstr, cp) != string::npos;
 			if (cup < 1) EventList[event].cups[0]->Unlocked = true;
 			if (passed) {
 				EventList[event].cups[cup]->Unlocked = true;
@@ -135,7 +135,7 @@ void CEvents::MakeUnlockList(const std::string& unlockstr) {
 	}
 }
 
-bool CEvents::IsUnlocked(std::size_t event, std::size_t cup) const {
+bool CEvents::IsUnlocked(size_t event, size_t cup) const {
 	if (event >= EventList.size()) return false;
 	if (cup >= EventList[event].cups.size()) return false;
 	return EventList[event].cups[cup]->Unlocked;
@@ -149,11 +149,11 @@ CPlayers Players;
 
 CPlayers::~CPlayers() {
 	ResetControls();
-	for (std::size_t i = 0; i < avatars.size(); i++)
+	for (size_t i = 0; i < avatars.size(); i++)
 		delete avatars[i].texture;
 }
 
-void CPlayers::AddPlayer(const std::string& name, const std::string& avatar) {
+void CPlayers::AddPlayer(const string& name, const string& avatar) {
 	plyr.emplace_back(name, FindAvatar(avatar));
 }
 
@@ -169,7 +169,7 @@ bool CPlayers::LoadPlayers() {
 		return false;
 	}
 
-	CSPList list;
+	CSPList list(MAX_PLAYERS);
 	if (list.Load(param.config_dir, "players") == false) {
 		SetDefaultPlayers();
 		Message("could not load players list, set default players");
@@ -178,7 +178,7 @@ bool CPlayers::LoadPlayers() {
 
 	g_game.start_player = 0;
 	plyr.resize(list.size());
-	std::size_t i = 0;
+	size_t i = 0;
 	for (CSPList::const_iterator line = list.cbegin(); line != list.cend(); ++line, i++) {
 		plyr[i].name = SPStrN(*line, "name", "unknown");
 		plyr[i].funlocked = SPStrN(*line, "unlocked");
@@ -196,10 +196,10 @@ bool CPlayers::LoadPlayers() {
 }
 
 void CPlayers::SavePlayers() const {
-	std::string playerfile = param.config_dir + SEP "players";
-	CSPList list;
-	for (std::size_t i=0; i<plyr.size(); i++) {
-		std::string item = "*[name]" + plyr[i].name;
+	string playerfile = param.config_dir + SEP "players";
+	CSPList list(plyr.size());
+	for (size_t i=0; i<plyr.size(); i++) {
+		string item = "*[name]" + plyr[i].name;
 		item +="[avatar]" + plyr[i].avatar->filename;
 		item += "[unlocked]" + plyr[i].funlocked;
 		if (&plyr[i] == g_game.player) item += "[active]1";
@@ -209,28 +209,28 @@ void CPlayers::SavePlayers() const {
 	list.Save(playerfile);
 }
 
-const TAvatar* CPlayers::FindAvatar(const std::string& name) const {
-	for (std::size_t i = 0; i < avatars.size(); i++)
+const TAvatar* CPlayers::FindAvatar(const string& name) const {
+	for (size_t i = 0; i < avatars.size(); i++)
 		if (avatars[i].filename == name)
 			return &avatars[i];
 	return 0;
 }
 
-void CPlayers::AddPassedCup(const std::string& cup) {
+void CPlayers::AddPassedCup(const string& cup) {
 	if (SPIntN(g_game.player->funlocked, cup, -1) > 0) return;
 	g_game.player->funlocked += ' ';
 	g_game.player->funlocked += cup;
 }
 
 void CPlayers::ResetControls() {
-	for (std::size_t i=0; i<plyr.size(); i++) {
+	for (size_t i=0; i<plyr.size(); i++) {
 		delete plyr[i].ctrl;
 		plyr[i].ctrl = nullptr;
 	}
 }
 
 // called in module regist.cpp:
-void CPlayers::AllocControl(std::size_t player) {
+void CPlayers::AllocControl(size_t player) {
 	if (player >= plyr.size()) return;
 	if (plyr[player].ctrl != nullptr) return;
 	plyr[player].ctrl = new CControl;
@@ -239,7 +239,7 @@ void CPlayers::AllocControl(std::size_t player) {
 // ----------------------- avatars ------------------------------------
 
 bool CPlayers::LoadAvatars() {
-	CSPList list;
+	CSPList list(MAX_AVATARS);
 
 	if (!list.Load(param.player_dir, "avatars.lst")) {
 		Message("could not load avators.lst");
@@ -247,7 +247,7 @@ bool CPlayers::LoadAvatars() {
 	}
 
 	for (CSPList::const_iterator line = list.cbegin(); line != list.cend(); ++line) {
-		std::string filename = SPStrN(*line, "file", "unknown");
+		string filename = SPStrN(*line, "file", "unknown");
 		TTexture* texture = new TTexture();
 		if (texture && texture->Load(param.player_dir, filename)) {
 			avatars.emplace_back(filename, texture);
@@ -257,12 +257,12 @@ bool CPlayers::LoadAvatars() {
 	return true;
 }
 
-TTexture* CPlayers::GetAvatarTexture(std::size_t avatar) const {
+TTexture* CPlayers::GetAvatarTexture(size_t avatar) const {
 	if (avatar >= avatars.size()) return 0;
 	return avatars[avatar].texture;
 }
 
-const std::string& CPlayers::GetDirectAvatarName(std::size_t avatar) const {
+const string& CPlayers::GetDirectAvatarName(size_t avatar) const {
 	if (avatar >= avatars.size()) return emptyString;
 	return avatars[avatar].filename;
 }
@@ -279,17 +279,17 @@ CKeyframe* TCharacter::GetKeyframe(TFrameType type_) {
 
 CCharacter Char;
 
-static const std::string char_type_index = "[spheres]0[3d]1";
+static const string char_type_index = "[spheres]0[3d]1";
 
 CCharacter::~CCharacter() {
-	for (std::size_t i = 0; i < CharList.size(); i++) {
+	for (size_t i = 0; i < CharList.size(); i++) {
 		delete CharList[i].preview;
 		delete CharList[i].shape;
 	}
 }
 
 bool CCharacter::LoadCharacterList() {
-	CSPList list;
+	CSPList list(MAX_CHARACTERS);
 
 	if (!list.Load(param.char_dir, "characters.lst")) {
 		Message("could not load characters.lst");
@@ -297,16 +297,16 @@ bool CCharacter::LoadCharacterList() {
 	}
 
 	CharList.resize(list.size());
-	std::size_t i = 0;
+	size_t i = 0;
 	for (CSPList::const_iterator line = list.cbegin(); line != list.cend(); ++line, i++) {
 		CharList[i].name = SPStrN(*line, "name");
 		CharList[i].dir = SPStrN(*line, "dir");
-		std::string typestr = SPStrN(*line, "type", "unknown");
+		string typestr = SPStrN(*line, "type", "unknown");
 		CharList[i].type = SPIntN(char_type_index, typestr, -1);
 
-		std::string charpath = param.char_dir + SEP + CharList[i].dir;
+		string charpath = param.char_dir + SEP + CharList[i].dir;
 		if (DirExists(charpath.c_str())) {
-			std::string previewfile = charpath + SEP "preview.png";
+			string previewfile = charpath + SEP "preview.png";
 
 			TCharacter* ch = &CharList[i];
 			ch->preview = new TTexture();
@@ -336,7 +336,7 @@ bool CCharacter::LoadCharacterList() {
 }
 
 void CCharacter::FreeCharacterPreviews() {
-	for (std::size_t i=0; i<CharList.size(); i++) {
+	for (size_t i=0; i<CharList.size(); i++) {
 		delete CharList[i].preview;
 		CharList[i].preview = 0;
 	}

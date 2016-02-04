@@ -55,9 +55,6 @@ GNU General Public License for more details.
 #	define SEP "\\"
 #	undef DrawText
 #	undef GetObject
-#	if _MSC_VER < 1900 // VS 2013 or older
-#		define constexpr
-#	endif
 #elif defined OS_WIN32_MINGW
 #	include <dirent.h>
 #	include <GL/glext.h>
@@ -72,11 +69,16 @@ GNU General Public License for more details.
 #	define SEP "/"
 #endif
 
+// --------------------------------------------------------------------
+//			defines
+// --------------------------------------------------------------------
 
 #define USE_STENCIL_BUFFER
 
 #include "version.h"
 #define WINDOW_TITLE "Extreme Tux Racer " ETR_VERSION_STRING
+
+using namespace std;
 
 #include "etr_types.h"
 #include "common.h"
