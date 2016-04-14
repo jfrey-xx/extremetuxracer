@@ -22,7 +22,7 @@ GNU General Public License for more details.
 #include "bh.h"
 #include "matrices.h"
 
-static constexpr TVector3d GravVec(0.0, -1.0, 0.0);
+static const TVector3d GravVec(0.0, -1.0, 0.0);
 
 // --------------------------------------------------------------------
 //			Advanced geometry
@@ -31,17 +31,18 @@ static constexpr TVector3d GravVec(0.0, -1.0, 0.0);
 struct TPlane {
 	TVector3d nml;
 	double d;
-	constexpr explicit TPlane(double nx = 0.0, double ny = 0.0, double nz = 0.0, double d_ = 0.0)
+	explicit TPlane(double nx = 0.0, double ny = 0.0, double nz = 0.0, double d_ = 0.0)
 		: nml(nx, ny, nz), d(d_)
 	{}
 };
 
-struct TPolygon		{ std::vector<int> vertices; };
+struct TPolygon		{ vector<int> vertices; };
+struct TSphere		{ double radius; int divisions; };
 struct TRay			{ TVector3d pt; TVector3d vec; };
 
 struct TPolyhedron {
-	std::vector<TVector3d> vertices;
-	std::vector<TPolygon> polygons;
+	vector<TVector3d> vertices;
+	vector<TPolygon> polygons;
 };
 
 TVector3d	ProjectToPlane(const TVector3d& nml, const TVector3d& v);
@@ -61,7 +62,7 @@ TQuaternion MakeRotationQuaternion(const TVector3d& s, const TVector3d& t);
 TQuaternion InterpolateQuaternions(const TQuaternion& q, TQuaternion r, double t);
 TVector3d	RotateVector(const TQuaternion& q, const TVector3d& v);
 
-bool		IntersectPolygon(const TPolygon& p, std::vector<TVector3d>& v);
+bool		IntersectPolygon(const TPolygon& p, vector<TVector3d>& v);
 bool		IntersectPolyhedron(TPolyhedron& p);
 TVector3d	MakeNormal(const TPolygon& p, const TVector3d *v);
 void		TransPolyhedron(const TMatrix<4, 4>& mat, TPolyhedron& ph);
@@ -76,14 +77,14 @@ struct TOdeData {
 	double h;
 };
 
-typedef int (*PNumEstimates)();
-typedef void (*PInitOdeData)(TOdeData *, double init_val, double h);
-typedef double (*PNextTime)(TOdeData *, int step);
-typedef double (*PNextValue)(TOdeData *, int step);
-typedef void (*PUpdateEstimate)(TOdeData *, int step, double val);
-typedef double (*PFinalEstimate)(TOdeData *);
-typedef double (*PEstimateError)(TOdeData *);
-typedef double (*PTimestepExponent)();
+typedef int	(*PNumEstimates)();
+typedef void	(*PInitOdeData)(TOdeData *, double init_val, double h);
+typedef double(*PNextTime)(TOdeData *, int step);
+typedef double(*PNextValue)(TOdeData *, int step);
+typedef void	(*PUpdateEstimate)(TOdeData *, int step, double val);
+typedef double(*PFinalEstimate)(TOdeData *);
+typedef double(*PEstimateError)(TOdeData *);
+typedef double(*PTimestepExponent)();
 
 struct TOdeSolver {
 	PNumEstimates		NumEstimates;

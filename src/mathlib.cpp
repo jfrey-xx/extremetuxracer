@@ -105,7 +105,7 @@ TMatrix<4, 4> RotateAboutVectorMatrix(const TVector3d& u, double angle) {
 	double b = u.y;
 	double c = u.z;
 
-	double d = std::hypot(b, c);
+	double d = sqrt(b*b + c*c);
 
 	if (d < EPS) {
 		if (a < 0)
@@ -194,7 +194,7 @@ TQuaternion MakeQuaternionFromMatrix(const TMatrix<4, 4>& m) {
 	tr = m[0][0] + m[1][1] + m[2][2];
 
 	if (tr > 0.0) {
-		s = std::sqrt(tr + 1.0);
+		s = sqrt(tr + 1.0);
 		res.w = 0.5 * s;
 		s = 0.5 / s;
 		res.x = (m[1][2] - m[2][1]) * s;
@@ -207,7 +207,7 @@ TQuaternion MakeQuaternionFromMatrix(const TMatrix<4, 4>& m) {
 		int j = nxt[i];
 		int k = nxt[j];
 
-		s = std::sqrt(m[i][i] - m[j][j] - m[k][k] + 1.0);
+		s = sqrt(m[i][i] - m[j][j] - m[k][k] + 1.0);
 
 		q[i] = s * 0.5;
 
@@ -235,8 +235,8 @@ TQuaternion MakeRotationQuaternion(const TVector3d& s, const TVector3d& t) {
 	} else {
 		double cos2phi = DotProduct(s, t);
 
-		double sinphi = std::sqrt((1 - cos2phi) / 2.0);
-		double cosphi = std::sqrt((1 + cos2phi) / 2.0);
+		double sinphi = sqrt((1 - cos2phi) / 2.0);
+		double cosphi = sqrt((1 + cos2phi) / 2.0);
 
 		return TQuaternion(
 		           sinphi * u.x,
@@ -259,10 +259,10 @@ TQuaternion InterpolateQuaternions(const TQuaternion& q, TQuaternion r, double t
 
 	double scale0, scale1;
 	if (1.0 - cosphi > EPS) {
-		double phi = std::acos(cosphi);
-		double sinphi = std::sin(phi);
-		scale0 = std::sin(phi * (1.0 - t)) / sinphi;
-		scale1 = std::sin(phi * t) / sinphi;
+		double phi = acos(cosphi);
+		double sinphi = sin(phi);
+		scale0 = sin(phi * (1.0 - t)) / sinphi;
+		scale1 = sin(phi * t) / sinphi;
 	} else {
 		scale0 = 1.0 - t;
 		scale1 = t;
@@ -314,11 +314,11 @@ bool order(double *matrix, int n, int pivot) {
 	int rmax = pivot;
 
 	for (int row=pivot+1; row<n; row++) {
-		if (std::fabs(*(matrix+row*(n+1)+pivot)) > std::fabs(*(matrix+rmax*(n+1)+pivot)))
+		if (fabs(*(matrix+row*(n+1)+pivot)) > fabs(*(matrix+rmax*(n+1)+pivot)))
 			rmax = row;
 	}
 
-	if (std::fabs(*(matrix+rmax*(n+1)+pivot)) < EPS)
+	if (fabs(*(matrix+rmax*(n+1)+pivot)) < EPS)
 		error = true;
 	else if (rmax != pivot) {
 		for (int k=0; k<(n+1); k++) {
@@ -355,7 +355,7 @@ void backsb(double *matrix, int n, double *soln) {
 // ***************************************************************************
 // ***************************************************************************
 
-bool IntersectPolygon(const TPolygon& p, std::vector<TVector3d>& v) {
+bool IntersectPolygon(const TPolygon& p, vector<TVector3d>& v) {
 	TRay ray;
 	double d, s, nuDotProd;
 	double distsq;
@@ -365,14 +365,14 @@ bool IntersectPolygon(const TPolygon& p, std::vector<TVector3d>& v) {
 	ray.vec = nml;
 
 	nuDotProd = DotProduct(nml, ray.vec);
-	if (std::fabs(nuDotProd) < EPS)
+	if (fabs(nuDotProd) < EPS)
 		return false;
 
 	d = - DotProduct(nml, v[p.vertices[0]]);
 
-	if (std::fabs(d) > 1) return false;
+	if (fabs(d) > 1) return false;
 
-	for (std::size_t i=0; i < p.vertices.size(); i++) {
+	for (size_t i=0; i < p.vertices.size(); i++) {
 		TVector3d *v0, *v1;
 
 		v0 = &v[p.vertices[i]];
@@ -398,7 +398,7 @@ bool IntersectPolygon(const TPolygon& p, std::vector<TVector3d>& v) {
 	s = - (d + DotProduct(nml, ray.pt)) / nuDotProd;
 	TVector3d pt = ray.pt + s * ray.vec;
 
-	for (std::size_t i = 0; i < p.vertices.size(); i++) {
+	for (size_t i = 0; i < p.vertices.size(); i++) {
 		TVector3d edge_nml = CrossProduct(nml,
 		                                  v[p.vertices[(i + 1) % p.vertices.size()]] - v[p.vertices[i]]);
 
@@ -410,7 +410,7 @@ bool IntersectPolygon(const TPolygon& p, std::vector<TVector3d>& v) {
 
 bool IntersectPolyhedron(TPolyhedron& p) {
 	bool hit = false;
-	for (std::size_t i = 0; i < p.polygons.size(); i++) {
+	for (size_t i = 0; i < p.polygons.size(); i++) {
 		hit = IntersectPolygon(p.polygons[i], p.vertices);
 		if (hit == true) break;
 	}
@@ -428,7 +428,7 @@ TVector3d MakeNormal(const TPolygon& p, const TVector3d *v) {
 
 
 void TransPolyhedron(const TMatrix<4, 4>& mat, TPolyhedron& ph) {
-	for (std::size_t i = 0; i < ph.vertices.size(); i++)
+	for (size_t i = 0; i < ph.vertices.size(); i++)
 		ph.vertices[i] = TransformPoint(mat, ph.vertices[i]);
 }
 
@@ -483,7 +483,7 @@ double ode23_EstimateError(TOdeData *data) {
 
 	for (int i=0; i<4; i++)
 		err += ode23_error_mat[i] * data->k[i];
-	return std::fabs(err);
+	return fabs(err);
 }
 
 double ode23_TimestepExponent() {
@@ -516,15 +516,15 @@ double LinearInterp(const double x[], const double y[], double val, int n) {
 }
 
 double XRandom(double min, double max) {
-	return (double)std::rand() / RAND_MAX * (max - min) + min;
+	return (double)rand() / RAND_MAX * (max - min) + min;
 }
 
 double FRandom() {
-	return (double)std::rand() / RAND_MAX;
+	return (double)rand() / RAND_MAX;
 }
 
 int IRandom(int min, int max) {
-	return min + std::rand()%(max-min+1);
+	return min + rand()%(max-min+1);
 }
 
 int ITrunc(int val, int base) {

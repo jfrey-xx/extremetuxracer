@@ -21,8 +21,10 @@ GNU General Public License for more details.
 #include "states.h"
 #include <forward_list>
 
+#define MAX_CREDITS 64
+
 struct TCredits {
-	std::string text;
+	string text;
 	float size;
 	int offs;
 	int font;
@@ -30,7 +32,7 @@ struct TCredits {
 };
 
 class CCredits : public State {
-	std::forward_list<TCredits> CreditList;
+	forward_list<TCredits> CreditList;
 
 	void DrawCreditsText(float time_step);
 	void Enter();

@@ -41,8 +41,8 @@ CEvent Event;
 // ready: 0 - racing  1 - ready with success  2 - ready with failure
 static int ready = 0; // indicates if last race is done
 static TCup *ecup = 0;
-static std::size_t curr_race = 0;
-static std::size_t curr_bonus = 0;
+static size_t curr_race = 0;
+static size_t curr_bonus = 0;
 static TWidget* textbuttons[3];
 static TLabel* headline;
 static TLabel* info1;
@@ -107,7 +107,7 @@ void InitCupRacing() {
 }
 
 void UpdateCupRacing() {
-	std::size_t lastrace = ecup->races.size() - 1;
+	size_t lastrace = ecup->races.size() - 1;
 	curr_bonus += g_game.race_result;
 	if (g_game.race_result >= 0) {
 		if (curr_race < lastrace) curr_race++;
@@ -145,9 +145,9 @@ void CEvent::Enter() {
 	int framebottom = frametop + (int) ecup->races.size() * dist + 10;
 
 	ResetGUI();
-	unsigned int siz = FT.AutoSizeN(5);
+	int siz = FT.AutoSizeN(5);
 	textbuttons[1] = AddTextButton(Trans.Text(8), area.left + 100, AutoYPosN(80), siz);
-	int len = FT.GetTextWidth(Trans.Text(13));
+	float len = FT.GetTextWidth(Trans.Text(13));
 	textbuttons[0] = AddTextButton(Trans.Text(13), area.right -len - 100, AutoYPosN(80), siz);
 	textbuttons[2] = AddTextButton(Trans.Text(15), CENTER, AutoYPosN(80), siz);
 	SetFocus((ready == 2) ? textbuttons[2] : textbuttons[0]);
@@ -157,7 +157,7 @@ void CEvent::Enter() {
 
 	FT.AutoSizeN(3);
 	int ddd = FT.AutoDistanceN(1);
-	sf::String info = Trans.Text(11);
+	string info = Trans.Text(11);
 	info += "   " + Int_StrN(ecup->races[curr_race]->herrings.x);
 	info += "   " + Int_StrN(ecup->races[curr_race]->herrings.y);
 	info += "   " + Int_StrN(ecup->races[curr_race]->herrings.z);
@@ -177,7 +177,7 @@ void CEvent::Enter() {
 	Music.Play(param.menu_music, true);
 }
 
-int resultlevel(std::size_t num, std::size_t numraces) {
+int resultlevel(size_t num, size_t numraces) {
 	if (num < 1) return 0;
 	int q = (int)((num - 0.01) / numraces);
 	return q + 1;
@@ -200,7 +200,7 @@ void CEvent::Loop(float timestep) {
 		           (int)ecup->races.size() * dist + 20, 3, colBackgr, colWhite, 1);
 
 		TCheckbox checkbox(area.right - 50, frametop, texsize, "");
-		for (std::size_t i=0; i<ecup->races.size(); i++) {
+		for (size_t i=0; i<ecup->races.size(); i++) {
 			FT.AutoSizeN(4);
 
 			int y = frametop + 10 + (int)i * dist;

@@ -53,8 +53,8 @@ CCamera::CCamera() {
 }
 
 void CCamera::XMove(GLfloat step) {
-	zview += (float)std::sin(-vhead * 3.14 / 180) * step;
-	xview += (float)std::cos(-vhead * 3.14 / 180) * step;
+	zview += (float)sin(-vhead * 3.14 / 180) * step;
+	xview += (float)cos(-vhead * 3.14 / 180) * step;
 }
 
 void CCamera::YMove(GLfloat step) {
@@ -62,8 +62,8 @@ void CCamera::YMove(GLfloat step) {
 }
 
 void CCamera::ZMove(GLfloat step) {
-	xview += (float)std::sin(vhead * 3.14 / 180) * step;
-	zview += (float)std::cos(vhead * 3.14 / 180) * step;
+	xview += (float)sin(vhead * 3.14 / 180) * step;
+	zview += (float)cos(vhead * 3.14 / 180) * step;
 }
 
 void CCamera::RotateHead(GLfloat step) {
@@ -107,8 +107,8 @@ void CGluCamera::Update(float timestep) {
 	if (turnleft) angle -= timestep * 2000;
 	if (nearer) distance -= timestep * 100;
 	if (farther) distance += timestep * 100;
-	double xx = distance * std::sin(angle * M_PI / 180);
-	double zz = distance * std::sin((90 - angle) * M_PI / 180);
+	double xx = distance * sin(angle * M_PI / 180);
+	double zz = distance * sin((90 - angle) * M_PI / 180);
 	glLoadIdentity();
 	gluLookAt(xx, 0, zz, 0, 0, 0, 0, 1, 0);
 }
@@ -122,9 +122,9 @@ CTools Tools;
 static bool finalstage = false;
 static bool charchanged = false;
 static bool framechanged = false;
-static std::string char_dir;
-static std::string char_file;
-static std::string frame_file;
+static string char_dir;
+static string char_file;
+static string frame_file;
 
 static const TLight toollight = {
 	{0.45f, 0.53f, 0.75f, 1.f},
@@ -215,7 +215,7 @@ void SaveToolFrame() {
 	framechanged = false;
 }
 
-void CTools::SetParameter(const std::string& dir, const std::string& file) {
+void CTools::SetParameter(const string& dir, const string& file) {
 	char_dir = param.char_dir + SEP + dir;
 	char_file = "shape.lst";
 	frame_file = file;

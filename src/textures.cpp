@@ -39,13 +39,13 @@ static const GLshort fullsize_texture[] = {
 //				class TTexture
 // --------------------------------------------------------------------
 
-bool TTexture::Load(const std::string& filename, bool repeatable) {
+bool TTexture::Load(const string& filename, bool repeatable) {
 	texture.setSmooth(true);
 	texture.setRepeated(repeatable);
 	return texture.loadFromFile(filename);
 }
 
-bool TTexture::Load(const std::string& dir, const std::string& filename, bool repeatable) {
+bool TTexture::Load(const string& dir, const string& filename, bool repeatable) {
 	return Load(dir + SEP + filename, repeatable);
 }
 
@@ -64,16 +64,18 @@ void TTexture::Draw() {
 	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &h);
 
 	glColor4f(1.0, 1.0, 1.0, 1.0);
-	const GLint vtx[] = {
+
+        // FIXME: Should this be GLint instead of all this casting of values to it?
+	const GLshort vtx[] = {
 		0, 0,
-		w, 0,
-		w, h,
-		0, h
+		static_cast<GLshort>(w), 0,
+		static_cast<GLshort>(w), static_cast<GLshort>(h),
+		0, static_cast<GLshort>(h)
 	};
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
-	glVertexPointer(2, GL_INT, 0, vtx);
+	glVertexPointer(2, GL_SHORT, 0, vtx);
 	glTexCoordPointer(2, GL_SHORT, 0, fullsize_texture);
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
@@ -155,7 +157,7 @@ void TTexture::DrawFrame(int x, int y, int w, int h, int frame, const sf::Color&
 	if (h < 1) h = texture.getSize().y;
 
 	if (frame > 0)
-		DrawFrameX(x - frame, y - frame, w + 2 * frame, h + 2 * frame, frame, colTransp, col, 1.f);
+		DrawFrameX(x - frame, y - frame, w + 2 * frame, h + 2 * frame, frame, colTransp, col, 1.0);
 
 	sf::Sprite temp(texture);
 	temp.setPosition(x, y);
@@ -178,12 +180,12 @@ CTexture::~CTexture() {
 
 bool CTexture::LoadTextureList() {
 	FreeTextureList();
-	CSPList list;
+	CSPList list(200);
 	if (list.Load(param.tex_dir, "textures.lst")) {
 		for (CSPList::const_iterator line = list.cbegin(); line != list.cend(); ++line) {
 			int id = SPIntN(*line, "id", -1);
-			CommonTex.resize(std::max(CommonTex.size(), (std::size_t)id+1));
-			std::string texfile = SPStrN(*line, "file");
+			CommonTex.resize(max(CommonTex.size(), (size_t)id+1));
+			string texfile = SPStrN(*line, "file");
 			bool rep = SPBoolN(*line, "repeat", false);
 			if (id >= 0) {
 				CommonTex[id] = new TTexture();
@@ -198,22 +200,22 @@ bool CTexture::LoadTextureList() {
 }
 
 void CTexture::FreeTextureList() {
-	for (std::size_t i=0; i<CommonTex.size(); i++) {
+	for (size_t i=0; i<CommonTex.size(); i++) {
 		delete CommonTex[i];
 	}
 	CommonTex.clear();
 }
 
-TTexture* CTexture::GetTexture(std::size_t idx) const {
+TTexture* CTexture::GetTexture(size_t idx) const {
 	if (idx >= CommonTex.size()) return nullptr;
 	return CommonTex[idx];
 }
 
-const sf::Texture& CTexture::GetSFTexture(std::size_t idx) const {
+const sf::Texture& CTexture::GetSFTexture(size_t idx) const {
 	return CommonTex[idx]->texture;
 }
 
-bool CTexture::BindTex(std::size_t idx) {
+bool CTexture::BindTex(size_t idx) {
 	if (idx >= CommonTex.size()) return false;
 	CommonTex[idx]->Bind();
 	return true;
@@ -221,22 +223,22 @@ bool CTexture::BindTex(std::size_t idx) {
 
 // ---------------------------- Draw ----------------------------------
 
-void CTexture::Draw(std::size_t idx) {
+void CTexture::Draw(size_t idx) {
 	if (CommonTex.size() > idx)
 		CommonTex[idx]->Draw();
 }
 
-void CTexture::Draw(std::size_t idx, int x, int y, float size) {
+void CTexture::Draw(size_t idx, int x, int y, float size) {
 	if (CommonTex.size() > idx)
 		CommonTex[idx]->Draw(x, y, size);
 }
 
-void CTexture::Draw(std::size_t idx, int x, int y, int width, int height) {
+void CTexture::Draw(size_t idx, int x, int y, int width, int height) {
 	if (CommonTex.size() > idx)
 		CommonTex[idx]->Draw(x, y, width, height);
 }
 
-void CTexture::DrawFrame(std::size_t idx, int x, int y, double w, double h, int frame, const sf::Color& col) {
+void CTexture::DrawFrame(size_t idx, int x, int y, double w, double h, int frame, const sf::Color& col) {
 	if (CommonTex.size() > idx)
 		CommonTex[idx]->DrawFrame(x, y, w, h, frame, col);
 }
@@ -245,9 +247,10 @@ void CTexture::DrawFrame(std::size_t idx, int x, int y, double w, double h, int 
 
 void CTexture::DrawNumChr(char c, int x, int y, int w, int h) {
 	int idx;
-	if (std::isdigit((unsigned char)c))
-		idx = c - '0';
-	else if (c == ':')
+	if (std::isdigit((unsigned char)c)) {
+		char chrname[2] = {c, '\0'};
+		idx = atoi(chrname);
+	} else if (c == ':')
 		idx = 10;
 	else if (c == ' ')
 		idx = 11;
@@ -266,14 +269,14 @@ void CTexture::DrawNumChr(char c, int x, int y, int w, int h) {
 		texleft, 0
 	};
 	const GLfloat vtx[] = {
-          static_cast<GLfloat>(x),
-          static_cast<GLfloat>(Winsys.resolution.height - y - h),
-          static_cast<GLfloat>(x + w * 0.9f),
-          static_cast<GLfloat>(Winsys.resolution.height - y - h),
-          static_cast<GLfloat>(x + w * 0.9f),
-          static_cast<GLfloat>(Winsys.resolution.height - y),
-          static_cast<GLfloat>(x),
-          static_cast<GLfloat>(Winsys.resolution.height - y)
+           static_cast<GLfloat>(x),
+           static_cast<GLfloat>(Winsys.resolution.height - y - h),
+           static_cast<GLfloat>(x + w * 0.9),
+           static_cast<GLfloat>(Winsys.resolution.height - y - h),
+           static_cast<GLfloat>(x + w * 0.9),
+           static_cast<GLfloat>(Winsys.resolution.height - y),
+           static_cast<GLfloat>(x),
+           static_cast<GLfloat>(Winsys.resolution.height - y)
 	};
 
 	glVertexPointer(2, GL_FLOAT, 0, vtx);
@@ -281,7 +284,7 @@ void CTexture::DrawNumChr(char c, int x, int y, int w, int h) {
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
 
-void CTexture::DrawNumStr(const std::string& s, int x, int y, float size, const sf::Color& col) {
+void CTexture::DrawNumStr(const string& s, int x, int y, float size, const sf::Color& col) {
 	if (!BindTex(NUMERIC_FONT)) {
 		Message("DrawNumStr: missing texture");
 		return;
@@ -294,7 +297,7 @@ void CTexture::DrawNumStr(const std::string& s, int x, int y, float size, const 
 	glColor(col);
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	for (std::size_t i=0; i < s.size(); i++) {
+	for (size_t i=0; i < s.size(); i++) {
 		DrawNumChr(s[i], x + (int)i*qw, y, qw, qh);
 	}
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);

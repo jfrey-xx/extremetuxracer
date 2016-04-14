@@ -28,8 +28,6 @@ GNU General Public License for more details.
 #include "course.h"
 #include "physics.h"
 #include "winsys.h"
-#include "game_ctrl.h"
-#include <algorithm>
 
 
 #define GAUGE_IMG_SIZE 128
@@ -49,29 +47,29 @@ GNU General Public License for more details.
 #define SPEEDBAR_RED_FRACTION 0.25
 #define CIRCLE_DIVISIONS 10
 
-static const GLubyte energy_background_color[]   = { 51,  51,  51, 0 };
-static const GLubyte energy_foreground_color[]   = { 138, 150, 255, 128 };
-static const GLubyte speedbar_background_color[] = { 51,  51,  51, 0 };
-static const GLubyte hud_white[]                 = { 255, 255, 255, 255 };
+static const GLfloat energy_background_color[] = { 0.2, 0.2, 0.2, 0.0 };
+static const GLfloat energy_foreground_color[] = { 0.54, 0.59, 1.00, 0.5 };
+static const GLfloat speedbar_background_color[] = { 0.2, 0.2, 0.2, 0.0 };
+static const GLfloat hud_white[] = { 1.0, 1.0, 1.0, 1.0 };
 
-static void draw_time(double time, sf::Color color) {
+static void draw_time() {
 	Tex.Draw(T_TIME, 10, 10, 1);
 
 	int min, sec, hundr;
-	GetTimeComponents(time, &min, &sec, &hundr);
-	std::string timestr = Int_StrN(min, 2);
-	std::string secstr = Int_StrN(sec, 2);
-	std::string hundrstr = Int_StrN(hundr, 2);
+	GetTimeComponents(g_game.time, &min, &sec, &hundr);
+	string timestr = Int_StrN(min, 2);
+	string secstr = Int_StrN(sec, 2);
+	string hundrstr = Int_StrN(hundr, 2);
 
 	timestr += ':';
 	timestr += secstr;
 
 	if (param.use_papercut_font < 2) {
-		Tex.DrawNumStr(timestr, 50, 12, 1, color);
-		Tex.DrawNumStr(hundrstr, 170, 12, 0.7f, color);
+		Tex.DrawNumStr(timestr, 50, 12, 1, colWhite);
+		Tex.DrawNumStr(hundrstr, 170, 12, 0.7, colWhite);
 	} else {
 		Winsys.beginSFML();
-		FT.SetColor(color);
+		FT.SetColor(colDYell);
 		FT.SetSize(30);
 		FT.DrawString(138, 3, hundrstr);
 		FT.SetSize(42);
@@ -80,15 +78,15 @@ static void draw_time(double time, sf::Color color) {
 	}
 }
 
-static void draw_herring_count(int herring_count, sf::Color color) {
+static void draw_herring_count(int herring_count) {
 	Tex.Draw(HERRING_ICON, Winsys.resolution.width - 59, 12, 1);
 
-	std::string hcountstr = Int_StrN(herring_count, 3);
+	string hcountstr = Int_StrN(herring_count, 3);
 	if (param.use_papercut_font < 2) {
-		Tex.DrawNumStr(hcountstr, Winsys.resolution.width - 130, 12, 1, color);
+		Tex.DrawNumStr(hcountstr, Winsys.resolution.width - 130, 12, 1, colWhite);
 	} else {
 		Winsys.beginSFML();
-		FT.SetColor(color);
+		FT.SetColor(colDYell);
 		FT.DrawString(Winsys.resolution.width - 125, 3, hcountstr);
 		Winsys.endSFML();
 	}
@@ -96,8 +94,8 @@ static void draw_herring_count(int herring_count, sf::Color color) {
 
 TVector2d calc_new_fan_pt(double angle) {
 	return TVector2d(
-	           ENERGY_GAUGE_CENTER_X + std::cos(ANGLES_TO_RADIANS(angle)) * SPEEDBAR_OUTER_RADIUS,
-	           ENERGY_GAUGE_CENTER_Y + std::sin(ANGLES_TO_RADIANS(angle)) * SPEEDBAR_OUTER_RADIUS);
+	           ENERGY_GAUGE_CENTER_X + cos(ANGLES_TO_RADIANS(angle)) * SPEEDBAR_OUTER_RADIUS,
+	           ENERGY_GAUGE_CENTER_Y + sin(ANGLES_TO_RADIANS(angle)) * SPEEDBAR_OUTER_RADIUS);
 }
 
 void draw_partial_tri_fan(double fraction) {
@@ -128,8 +126,8 @@ void draw_partial_tri_fan(double fraction) {
 }
 
 void draw_gauge(double speed, double energy) {
-	static const GLfloat xplane[4] = {1.f / GAUGE_IMG_SIZE, 0.f, 0.f, 0.f };
-	static const GLfloat yplane[4] = {0.f, 1.f / GAUGE_IMG_SIZE, 0.f, 0.f };
+	static const GLfloat xplane[4] = {1.0 / GAUGE_IMG_SIZE, 0.0, 0.0, 0.0 };
+	static const GLfloat yplane[4] = {0.0, 1.0 / GAUGE_IMG_SIZE, 0.0, 0.0 };
 
 	ScopedRenderMode rm(GAUGE_BARS);
 
@@ -144,27 +142,27 @@ void draw_gauge(double speed, double energy) {
 	glPushMatrix();
 	glTranslatef(Winsys.resolution.width - GAUGE_WIDTH, 0, 0);
 	Tex.BindTex(GAUGE_ENERGY);
-	float y = ENERGY_GAUGE_BOTTOM + energy * ENERGY_GAUGE_HEIGHT;
+	double y = ENERGY_GAUGE_BOTTOM + energy * ENERGY_GAUGE_HEIGHT;
 
 	const GLfloat vtx1 [] = {
-		0.f, y,
-		GAUGE_IMG_SIZE, y,
-		GAUGE_IMG_SIZE, GAUGE_IMG_SIZE,
-		0.f, GAUGE_IMG_SIZE
+          0.0, static_cast<GLfloat>(y),
+          GAUGE_IMG_SIZE, static_cast<GLfloat>(y),
+          GAUGE_IMG_SIZE, GAUGE_IMG_SIZE,
+          0.0, GAUGE_IMG_SIZE
 	};
 	const GLfloat vtx2 [] = {
-		0.f, 0.f,
-		GAUGE_IMG_SIZE, 0.f,
-		GAUGE_IMG_SIZE, y,
-		0.f, y
+		0.0, 0.0,
+		GAUGE_IMG_SIZE, 0.0,
+		GAUGE_IMG_SIZE, static_cast<GLfloat>(y),
+		0.0, static_cast<GLfloat>(y)
 	};
 	glEnableClientState(GL_VERTEX_ARRAY);
 
-	glColor4ubv(energy_background_color);
+	glColor4fv(energy_background_color);
 	glVertexPointer(2, GL_FLOAT, 0, vtx1);
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
-	glColor4ubv(energy_foreground_color);
+	glColor4fv(energy_foreground_color);
 	glVertexPointer(2, GL_FLOAT, 0, vtx2);
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
@@ -191,13 +189,13 @@ void draw_gauge(double speed, double energy) {
 		speedbar_frac +=  speed/SPEEDBAR_GREEN_MAX_SPEED * SPEEDBAR_GREEN_FRACTION;
 	}
 
-	glColor4ubv(speedbar_background_color);
+	glColor4fv(speedbar_background_color);
 	Tex.BindTex(GAUGE_SPEED);
 	draw_partial_tri_fan(1.0);
-	glColor4ubv(hud_white);
-	draw_partial_tri_fan(std::min(1.0, speedbar_frac));
+	glColor4fv(hud_white);
+	draw_partial_tri_fan(min(1.0, speedbar_frac));
 
-	glColor4ubv(hud_white);
+	glColor4fv(hud_white);
 	Tex.BindTex(GAUGE_OUTLINE);
 	static const GLshort vtx3 [] = {
 		0, 0,
@@ -215,7 +213,7 @@ void draw_gauge(double speed, double energy) {
 }
 
 void DrawSpeed(double speed) {
-	std::string speedstr = Int_StrN((int)speed, 3);
+	string speedstr = Int_StrN((int)speed, 3);
 	if (param.use_papercut_font < 2) {
 		Tex.DrawNumStr(speedstr,
 		               Winsys.resolution.width - 87, Winsys.resolution.height-73, 1, colWhite);
@@ -242,10 +240,10 @@ void DrawWind(float dir, float speed, const CControl *ctrl) {
 		alpha = speed / 50;
 		red = 0;
 	} else {
-		alpha = 1.f;
+		alpha = 1.0;
 		red = (speed - 50) / 50;
 	}
-	blue = 1.f - red;
+	blue = 1.0 - red;
 
 	glPushMatrix();
 	glColor4f(red, 0, blue, alpha);
@@ -263,7 +261,7 @@ void DrawWind(float dir, float speed, const CControl *ctrl) {
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
 	// direction indicator
-	float dir_angle = RADIANS_TO_ANGLES(std::atan2(ctrl->cvel.x, ctrl->cvel.z));
+	float dir_angle = RADIANS_TO_ANGLES(atan2(ctrl->cvel.x, ctrl->cvel.z));
 
 	glColor4f(0, 0.5, 0, 1.0);
 	glRotatef(dir_angle - dir, 0, 0, 1);
@@ -281,7 +279,7 @@ void DrawWind(float dir, float speed, const CControl *ctrl) {
 	glEnable(GL_TEXTURE_2D);
 
 	Tex.Draw(SPEED_KNOB, 5 + texWidth / 2 - 8, Winsys.resolution.height - 5 - texWidth / 2 - 8, 1.0);
-	std::string windstr = Int_StrN((int)speed, 3);
+	string windstr = Int_StrN((int)speed, 3);
 	if (param.use_papercut_font < 2) {
 		Tex.DrawNumStr(windstr, 120, Winsys.resolution.height - 45, 1, colWhite);
 	} else {
@@ -311,7 +309,7 @@ void DrawFps() {
 	}
 	if (averagefps < 1) return;
 
-	std::string fpsstr = Int_StrN((int)averagefps);
+	string fpsstr = Int_StrN((int)averagefps);
 	if (param.use_papercut_font < 2) {
 		Tex.DrawNumStr(fpsstr, (Winsys.resolution.width - 60) / 2, 10, 1, colWhite);
 	} else {
@@ -371,30 +369,8 @@ void DrawHud(const CControl *ctrl) {
 
 	draw_gauge(speed * 3.6, ctrl->jump_amt);
 	ScopedRenderMode rm(TEXFONT);
-
-	if (g_game.game_type == CUPRACING) {
-		if (g_game.time < g_game.race->time.z)
-			draw_time(g_game.race->time.z - g_game.time, colGold);
-		else if (g_game.time < g_game.race->time.y)
-			draw_time(g_game.race->time.y - g_game.time, colSilver);
-		else if (g_game.time < g_game.race->time.x)
-			draw_time(g_game.race->time.x - g_game.time, colBronze);
-		else
-			draw_time(g_game.time, colDRed);
-
-		if (g_game.herring < g_game.race->herrings.x)
-			draw_herring_count(g_game.race->herrings.x - g_game.herring, colBronze);
-		else if (g_game.herring < g_game.race->herrings.y)
-			draw_herring_count(g_game.race->herrings.y - g_game.herring, colSilver);
-		else if (g_game.herring < g_game.race->herrings.z)
-			draw_herring_count(g_game.race->herrings.z - g_game.herring, colGold);
-		else
-			draw_herring_count(g_game.herring, colGreen);
-	} else {
-		draw_time(g_game.time, param.use_papercut_font < 2 ? colWhite : colDYell);
-		draw_herring_count(g_game.herring, param.use_papercut_font < 2 ? colWhite : colDYell);
-	}
-
+	draw_time();
+	draw_herring_count(g_game.herring);
 	DrawSpeed(speed * 3.6);
 	DrawFps();
 	DrawCoursePosition(ctrl);

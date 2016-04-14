@@ -43,22 +43,22 @@ sf::VertexArray arr(sf::Quads, 12);
 sf::RenderStates states(sf::BlendAlpha);
 
 void CCredits::LoadCreditList() {
-	CSPList list;
+	CSPList list(MAX_CREDITS);
 
 	if (!list.Load(param.data_dir, "credits.lst")) {
 		Message("could not load credits list");
 		return;
 	}
 
-	std::forward_list<TCredits>::iterator last = CreditList.before_begin();
+	forward_list<TCredits>::iterator last = CreditList.before_begin();
 	for (CSPList::const_iterator line = list.cbegin(); line != list.cend(); ++line) {
 		int old_offs = (last != CreditList.before_begin()) ? last->offs : 0;
 		last = CreditList.emplace_after(last);
 		TCredits& credit = *last;
 		credit.text = SPStrN(*line, "text");
 
-		int offset = SPFloatN(*line, "offs", 0) * OFFS_SCALE_FACTOR * Winsys.scale;
-		if (line != list.cbegin()) credit.offs = old_offs + offset;
+		float offset = SPFloatN(*line, "offs", 0) * OFFS_SCALE_FACTOR * Winsys.scale;
+		if (line != list.cbegin()) credit.offs = old_offs + (int)offset;
 		else credit.offs = offset;
 
 		credit.col = SPIntN(*line, "col", 0);
@@ -74,7 +74,7 @@ void CCredits::DrawCreditsText(float time_step) {
 	sf::Text text;
 	text.setFont(FT.getCurrentFont());
 	RT->clear(colTBackr);
-	for (std::forward_list<TCredits>::const_iterator i = CreditList.begin(); i != CreditList.end(); ++i) {
+	for (forward_list<TCredits>::const_iterator i = CreditList.begin(); i != CreditList.end(); ++i) {
 		offs = h - TOP_Y - y_offset + i->offs;
 		if (offs > h || offs < -100.f) // Draw only visible lines
 			continue;
@@ -126,8 +126,8 @@ void CCredits::Enter() {
 	RT = new sf::RenderTexture();
 	RT->create(Winsys.resolution.width, Winsys.resolution.height - TOP_Y - BOTT_Y + 2 * FADE);
 
-	float w = Winsys.resolution.width;
-	float h = Winsys.resolution.height;
+	int w = Winsys.resolution.width;
+	int h = Winsys.resolution.height;
 	arr[0] = sf::Vertex(sf::Vector2f(0, TOP_Y - FADE), colTBackr, sf::Vector2f(0, 0));
 	arr[1] = sf::Vertex(sf::Vector2f(0, TOP_Y), colWhite, sf::Vector2f(0, FADE));
 	arr[2] = sf::Vertex(sf::Vector2f(w, TOP_Y), colWhite, sf::Vector2f(w, FADE));

@@ -69,7 +69,7 @@ void CScore::PrintScorelist(const std::string& group, const std::string& course)
 		PrintStr("no entries in this score list");
 	} else {
 		for (int i=0; i<list->numScores; i++) {
-			std::string line = "player: " + list->scores[i].player;
+			string line = "player: " + list->scores[i].player;
 			line += " points: " + Int_StrN(list->scores[i].points);
 			line += " herrings: " + Int_StrN(list->scores[i].herrings);
 			line += " time: " + Float_StrN(list->scores[i].time, 2);
@@ -87,7 +87,7 @@ const TScoreList* CScore::GetScorelist(const std::string& group, const std::stri
 }
 
 bool CScore::SaveHighScore() const {
-	CSPList splist;
+	CSPList splist(0xFFFFFFFF);
 
 	for (std::map<std::string, std::map<std::string, TScoreList>>::const_iterator i = Scorelist.cbegin(); i != Scorelist.cend(); ++i) {
 		for (std::map<std::string, TScoreList>::const_iterator j = i->second.cbegin(); j != i->second.cend(); ++j) {
@@ -97,7 +97,7 @@ bool CScore::SaveHighScore() const {
 			if (num > 0) {
 				for (int sc = 0; sc<num; sc++) {
 					const TScore& score = list->scores[sc];
-					std::string line = "*[group] " + i->first;
+					string line = "*[group] " + i->first;
 					line += " [course] " + j->first;
 					line += " [plyr] " + score.player;
 					line += " [pts] " + Int_StrN(score.points);
@@ -117,7 +117,7 @@ bool CScore::SaveHighScore() const {
 }
 
 bool CScore::LoadHighScore() {
-	CSPList list;
+	CSPList list(520);
 
 	if (!list.Load(param.config_dir, "highscore")) {
 		Message("could not load highscore list");
@@ -125,8 +125,8 @@ bool CScore::LoadHighScore() {
 	}
 
 	for (CSPList::const_iterator line = list.cbegin(); line != list.cend(); ++line) {
-		std::string group = SPStrN(*line, "group", "default");
-		std::string course = SPStrN(*line, "course", "unknown");
+		string group = SPStrN(*line, "group", "default");
+		string course = SPStrN(*line, "course", "unknown");
 		try {
 			AddScore(group, course, TScore(
 			             SPStrN(*line, "plyr", "unknown"),
@@ -243,7 +243,7 @@ void CScore::Enter() {
 	courseName = AddFramedText(area.left, frametop - 2 + frameheight + 20, framewidth, frameheight, 3, colMBackgr, "", FT.GetSize(), true);
 }
 
-const std::string ordinals[10] =
+const string ordinals[10] =
 {"1:st", "2:nd", "3:rd", "4:th", "5:th", "6:th", "7:th", "8:th", "9:th", "10:th"};
 
 void CScore::Loop(float timestep) {
@@ -259,7 +259,7 @@ void CScore::Loop(float timestep) {
 
 	if (courseGroup->GetValue() != prevGroup) {
 		prevGroup = courseGroup->GetValue();
-		CourseList = Course.getGroup((std::size_t)courseGroup->GetValue());
+		CourseList = Course.getGroup((size_t)courseGroup->GetValue());
 		course->SetValue(0);
 		course->SetMaximum((int)CourseList->size() - 1);
 		courseGroupName->SetString(CourseList->name);
@@ -275,7 +275,7 @@ void CScore::Loop(float timestep) {
 	FT.SetColor(colWhite);
 	FT.AutoSizeN(3);
 	if (list != nullptr && list->numScores > 0) {
-		for (int i=0; i<std::min(MAX_SCORES, list->numScores); i++) {
+		for (int i=0; i<min(MAX_SCORES, list->numScores); i++) {
 			int y = listtop + i*linedist;
 			FT.DrawString(area.left, y, ordinals[i]);
 			FT.DrawString(area.left + dd1, y, Int_StrN(list->scores[i].points));

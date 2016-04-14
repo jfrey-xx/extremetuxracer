@@ -20,6 +20,13 @@ GNU General Public License for more details.
 
 #include "vectors.h"
 
+struct TColor3 {
+	uint8_t r, g, b;
+	TColor3(uint8_t r_ = 0, uint8_t g_ = 0, uint8_t b_ = 0)
+		: r(r_), g(g_), b(b_)
+	{}
+};
+
 enum TToolMode {
 	NONE,
 	TUXSHAPE,
@@ -62,15 +69,15 @@ struct TGameData {
 	bool mirrorred;
 	TPlayer* player;
 	TCharacter* character;
-	std::size_t start_player;
+	size_t start_player;
 	TCup* cup;
 	TRace* race; // Only valid if not in practice mode
 	TCourse* course;
-	std::size_t location_id;
-	std::size_t light_id;
+	size_t location_id;
+	size_t light_id;
 	int snow_id;
 	int wind_id;
-	std::size_t theme_id;
+	size_t theme_id;
 
 	// race results (better in player.ctrl ?)
 	float time;				// reached time

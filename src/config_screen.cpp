@@ -50,7 +50,7 @@ Then edit the below functions:
 #include "winsys.h"
 
 CGameConfig GameConfig;
-static std::string res_names[NUM_RESOLUTIONS];
+static string res_names[NUM_RESOLUTIONS];
 
 static TCheckbox* fullscreen;
 static TUpDown* language;
@@ -152,7 +152,7 @@ void CGameConfig::Enter() {
 	int rightpos = area.right -48;
 
 	ResetGUI();
-	unsigned int siz = FT.AutoSizeN(5);
+	int siz = FT.AutoSizeN(5);
 	fullscreen = AddCheckbox(area.left, area.top, framewidth-16, Trans.Text(31));
 	fullscreen->checked = param.fullscreen;
 
@@ -169,7 +169,7 @@ void CGameConfig::Enter() {
 	columnAnchor = 0;
 	for (int i = 0; i < 5; i++) {
 		descriptions[i] = AddLabel(Trans.Text(32 + i), area.left, area.top + dd*(i + 1), colWhite);
-		columnAnchor = std::max(columnAnchor, (int)descriptions[i]->GetSize().x);
+		columnAnchor = max(columnAnchor, (int)descriptions[i]->GetSize().x);
 	}
 	columnAnchor += area.left + 20*Winsys.scale;
 

@@ -46,7 +46,7 @@ static TIconButton* wind;
 static TIconButton* mirror;
 static TIconButton* random_btn;
 static TWidget* textbuttons[2];
-static sf::String info;
+static string info;
 static int prevGroup = 0;
 
 static void UpdateInfo() {
@@ -196,7 +196,7 @@ void CRaceSelect::Loop(float timestep) {
 
 	if (courseGroup->GetValue() != prevGroup) {
 		prevGroup = courseGroup->GetValue();
-		Course.currentCourseList = Course.getGroup((std::size_t)courseGroup->GetValue());
+		Course.currentCourseList = Course.getGroup((size_t)courseGroup->GetValue());
 		g_game.course = nullptr;
 		course->SetValue(0);
 		course->SetMaximum((int)Course.currentCourseList->size()-1);
@@ -210,11 +210,11 @@ void CRaceSelect::Loop(float timestep) {
 	if ((*Course.currentCourseList)[course->GetValue()].preview)
 		(*Course.currentCourseList)[course->GetValue()].preview->DrawFrame(area.left + 3, prevtop, prevwidth, prevheight, 3, colWhite);
 
-	DrawFrameX(area.right-boxwidth, prevtop-3, boxwidth, prevheight+6, 3, colBackgr, colWhite, 1.f);
+	DrawFrameX(area.right-boxwidth, prevtop-3, boxwidth, prevheight+6, 3, colBackgr, colWhite, 1.0);
 	FT.AutoSizeN(2);
 	FT.SetColor(colWhite);
 	int dist = FT.AutoDistanceN(0);
-	for (std::size_t i = 0; i<(*Course.currentCourseList)[course->GetValue()].num_lines; i++) {
+	for (size_t i = 0; i<(*Course.currentCourseList)[course->GetValue()].num_lines; i++) {
 		FT.DrawString(boxleft + 8, prevtop + i*dist, (*Course.currentCourseList)[course->GetValue()].desc[i]);
 	}
 
@@ -225,7 +225,7 @@ void CRaceSelect::Loop(float timestep) {
 	if (g_game.force_treemap) {
 		FT.AutoSizeN(4);
 		static const sf::String forcetrees = "Load trees.png";
-		std::string sizevar = "Size: ";
+		string sizevar = "Size: ";
 		sizevar += Int_StrN(g_game.treesize);
 		sizevar += " Variation: ";
 		sizevar += Int_StrN(g_game.treevar);

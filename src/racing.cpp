@@ -180,7 +180,7 @@ static void CalcJumpEnergy(float time_step) {
 	CControl *ctrl = g_game.player->ctrl;
 
 	if (ctrl->jump_charging) {
-		ctrl->jump_amt = std::min(MAX_JUMP_AMT, g_game.time - charge_start_time);
+		ctrl->jump_amt = min(MAX_JUMP_AMT, g_game.time - charge_start_time);
 	} else if (ctrl->jumping) {
 		ctrl->jump_amt *= (1.0 - (g_game.time - ctrl->jump_start_time) /
 		                   JUMP_FORCE_DURATION);
@@ -190,16 +190,16 @@ static void CalcJumpEnergy(float time_step) {
 }
 
 static int CalcSoundVol(float fact) {
-	return std::min(param.sound_volume * fact, 100.f);
+	return min(param.sound_volume * fact, 100.f);
 }
 
 static void SetSoundVolumes() {
-	Sound.SetVolume("pickup1",    CalcSoundVol(1.0f));
-	Sound.SetVolume("pickup2",    CalcSoundVol(0.8f));
-	Sound.SetVolume("pickup3",    CalcSoundVol(0.8f));
-	Sound.SetVolume("snow_sound", CalcSoundVol(1.5f));
-	Sound.SetVolume("ice_sound",  CalcSoundVol(0.6f));
-	Sound.SetVolume("rock_sound", CalcSoundVol(1.1f));
+	Sound.SetVolume("pickup1",    CalcSoundVol(1.0));
+	Sound.SetVolume("pickup2",    CalcSoundVol(0.8));
+	Sound.SetVolume("pickup3",    CalcSoundVol(0.8));
+	Sound.SetVolume("snow_sound", CalcSoundVol(1.5));
+	Sound.SetVolume("ice_sound",  CalcSoundVol(0.6));
+	Sound.SetVolume("rock_sound", CalcSoundVol(1.1));
 }
 
 // ---------------------------- init ----------------------------------
@@ -210,6 +210,7 @@ void CRacing::Enter() {
 		param.view_mode = ABOVE;
 	}
 	set_view_mode(ctrl, param.view_mode);
+	left_turn = right_turn = trick_modifier = false;
 
 	ctrl->turn_fact = 0.0;
 	ctrl->turn_animation = 0.0;
@@ -247,11 +248,11 @@ void CRacing::Enter() {
 // this function is not used yet.
 /*static int SlideVolume(CControl *ctrl, double speed, int typ) {
 	if (typ == 1) {	// only at paddling or braking
-		return (int)(std::min((((std::pow(ctrl->turn_fact, 2) * 128)) +
+		return (int)(min((((pow(ctrl->turn_fact, 2) * 128)) +
 		                  (ctrl->is_braking ? 128:0) +
 		                  (ctrl->jumping ? 128:0) + 20) * (speed / 10), 128.0));
 	} else { 	// always
-		return (int)(128 * std::pow((speed/2),2));
+		return (int)(128 * pow((speed/2),2));
 	}
 }*/
 
@@ -262,13 +263,14 @@ static void PlayTerrainSound(CControl *ctrl, bool airborne) {
 			newsound = (int)Course.TerrList[terridx].sound;
 		else
 			newsound = -1;
-	} else
-		newsound = -1;
+	} else {
+          newsound = -1;
+        }
 
 	if ((newsound != lastsound) && (lastsound >= 0))
-		Sound.Halt(lastsound);
+          Sound.Halt(lastsound);
 	if (newsound >= 0)
-		Sound.Play(newsound, true);
+          Sound.Play(newsound, -1);
 
 	lastsound = newsound;
 }
@@ -317,9 +319,9 @@ static void CalcSteeringControls(CControl *ctrl, float time_step) {
 
 static void CalcFinishControls(CControl *ctrl, float timestep, bool airborne) {
 	double speed = ctrl->cvel.Length();
-	double dir_angle = RADIANS_TO_ANGLES(std::atan(ctrl->cvel.x / ctrl->cvel.z));
+	double dir_angle = RADIANS_TO_ANGLES(atan(ctrl->cvel.x / ctrl->cvel.z));
 
-	if (std::fabs(dir_angle) > 5 && speed > 5) {
+	if (fabs(dir_angle) > 5 && speed > 5) {
 		ctrl->turn_fact = dir_angle / 20;
 		if (ctrl->turn_fact < -1) ctrl->turn_fact = -1;
 		if (ctrl->turn_fact > 1) ctrl->turn_fact = 1;

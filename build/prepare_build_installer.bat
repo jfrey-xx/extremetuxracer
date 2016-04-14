@@ -3,6 +3,5 @@ pause
 
 cd ..\data
 del /s Makefile.am
-del /s Makefile.in
 del translations\xx_XX.lst
 pause

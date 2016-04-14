@@ -46,43 +46,43 @@ struct TLight {
 };
 
 struct TEnvironment {
-	std::string name;
+	string name;
 	bool high_res;
 };
 
 class CEnvironment {
 private:
-	std::size_t EnvID;
+	size_t EnvID;
 	TTexture* Skybox;
-	std::vector<TEnvironment> locs;
-	std::string lightcond[4];
+	vector<TEnvironment> locs;
+	string lightcond[4];
 	TLight default_light;
 	TLight lights[4];
 	TFog fog;
 	TFog default_fog;
 
-	std::map<std::string, std::size_t> EnvIndex;
-	std::map<std::string, std::size_t> LightIndex;
+	map<string, size_t> EnvIndex;
+	map<string, size_t> LightIndex;
 
 	void ResetSkybox();
-	void LoadSkybox(const std::string& EnvDir, bool high_res);
-	void LoadSkyboxSide(std::size_t index, const std::string& EnvDir, const std::string& name, bool high_res);
+	void LoadSkybox(const string& EnvDir, bool high_res);
+	void LoadSkyboxSide(size_t index, const string& EnvDir, const string& name, bool high_res);
 	void ResetLight();
-	void LoadLight(const std::string& EnvDir);
+	void LoadLight(const string& EnvDir);
 	void ResetFog();
 	void Reset();
-	std::string GetDir(std::size_t location, std::size_t light) const;
+	string GetDir(size_t location, size_t light) const;
 public:
 	CEnvironment();
 	bool LoadEnvironmentList();
-	void LoadEnvironment(std::size_t loc, std::size_t light);
-	void DrawSkybox(const TVector3d& pos) const;
+	void LoadEnvironment(size_t loc, size_t light);
+	void DrawSkybox(const TVector3d& pos);
 	void SetupLight();
 	void SetupFog();
-	void DrawFog() const;
+	void DrawFog();
 	const sf::Color& ParticleColor() const { return fog.part_color; }
-	std::size_t GetEnvIdx(const std::string& tag) const;
-	std::size_t GetLightIdx(const std::string& tag) const;
+	size_t GetEnvIdx(const string& tag) const;
+	size_t GetLightIdx(const string& tag) const;
 };
 
 extern CEnvironment Env;

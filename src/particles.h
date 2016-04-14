@@ -35,6 +35,7 @@ void draw_ui_snow();
 //					snow particles during race
 // --------------------------------------------------------------------
 
+void create_new_particles(const TVector3d& loc, const TVector3d& vel, int num);
 void update_particles(float time_step);
 void clear_particles();
 void draw_particles(const CControl *ctrl);
@@ -46,15 +47,15 @@ void generate_particles(const CControl *ctrl, double dtime, const TVector3d& pos
 
 struct TFlake {
 	TVector3d pt;
+	float   size;
 	TVector3d vel;
-	float size;
 	const GLfloat* tex;
 
 	void Draw(const TPlane& lp, const TPlane& rp, bool rotate_flake, float dir_angle) const;
 };
 
 struct TFlakeArea {
-	std::vector<TFlake> flakes;
+	vector<TFlake> flakes;
 
 	float left;
 	float right;
@@ -74,7 +75,7 @@ struct TFlakeArea {
 	bool  rotate_flake;
 
 	TFlakeArea(
-	    std::size_t num_flakes,
+	    size_t num_flakes,
 	    float xrange,
 	    float ytop,
 	    float yrange,
@@ -91,8 +92,8 @@ struct TFlakeArea {
 class CFlakes {
 private:
 	TVector3d snow_lastpos;
-	std::vector<TFlakeArea> areas;
-	void MakeSnowFlake(std::size_t ar, std::size_t i);
+	vector<TFlakeArea> areas;
+	void MakeSnowFlake(size_t ar, size_t i);
 	void GenerateSnowFlakes(const CControl *ctrl);
 	void UpdateAreas(const CControl *ctrl);
 public:
@@ -154,7 +155,7 @@ private:
 
 class CCurtain {
 private:
-	std::vector<TCurtain> curtains;
+	vector<TCurtain> curtains;
 
 	void SetStartParams(const CControl *ctrl);
 public:

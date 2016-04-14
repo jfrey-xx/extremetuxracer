@@ -30,24 +30,24 @@ struct TSound;
 
 class CSound {
 private:
-	std::vector<TSound*> sounds;
-	std::map<std::string, std::size_t> SoundIndex;
+	vector<TSound*> sounds;
+	map<string, size_t> SoundIndex;
 public:
 	~CSound();
 	bool LoadChunk(const std::string& name, const std::string& filename);
 	void LoadSoundList();
-	std::size_t GetSoundIdx(const std::string& name) const;
+	size_t GetSoundIdx(const string& name) const;
 
-	void SetVolume(std::size_t soundid, int volume);
-	void SetVolume(const std::string& name, int volume);
+	void SetVolume(size_t soundid, int volume);
+	void SetVolume(const string& name, int volume);
 
-	void Play(std::size_t soundid, bool loop);
-	void Play(const std::string& name, bool loop);
-	void Play(std::size_t soundid, bool loop, int volume);
-	void Play(const std::string& name, bool loop, int volume);
+	void Play(size_t soundid, bool loop);
+	void Play(const string& name, bool loop);
+	void Play(size_t soundid, bool loop, int volume);
+	void Play(const string& name, bool loop, int volume);
 
-	void Halt(std::size_t soundid);
-	void Halt(const std::string& name);
+	void Halt(size_t soundid);
+	void Halt(const string& name);
 	void HaltAll();
 
 	void FreeSounds();
@@ -70,12 +70,12 @@ class Music;
 
 class CMusic {
 private:
-	std::vector<sf::Music*> musics;
-	std::map<std::string, std::size_t> MusicIndex;
+	vector<sf::Music*> musics;
+	map<string, size_t> MusicIndex;
 
 	struct Situation { sf::Music* situation[SITUATION_COUNT]; };
-	std::vector<Situation> themes;
-	std::map<std::string, std::size_t> ThemesIndex;
+	vector<Situation> themes;
+	map<string, size_t> ThemesIndex;
 
 	sf::Music* curr_music;	// current music piece
 	int curr_volume;
@@ -85,17 +85,17 @@ public:
 	CMusic();
 	~CMusic();
 
-	bool LoadPiece(const std::string& name, const std::string& filename);
+	bool LoadPiece(const string& name, const string& filename);
 	void LoadMusicList();
-	std::size_t GetMusicIdx(const std::string& name) const;
-	std::size_t GetThemeIdx(const std::string& theme) const;
+	size_t GetMusicIdx(const string& name) const;
+	size_t GetThemeIdx(const string& theme) const;
 
 	void SetVolume(int volume);
-	bool Play(std::size_t musid, bool loop);
-	bool Play(const std::string& name, bool loop);
-	bool Play(std::size_t musid, bool loop, int volume);
-	bool Play(const std::string& name, bool loop, int volume);
-	bool PlayTheme(std::size_t theme, ESituation situation);
+	bool Play(size_t musid, bool loop);
+	bool Play(const string& name, bool loop);
+	bool Play(size_t musid, bool loop, int volume);
+	bool Play(const string& name, bool loop, int volume);
+	bool PlayTheme(size_t theme, ESituation situation);
 	void Halt();
 	void FreeMusics();
 };

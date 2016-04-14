@@ -27,7 +27,7 @@ extern TVector2i cursor_pos;
 
 struct TScreenRes {
 	unsigned int width, height;
-	constexpr TScreenRes(unsigned int w = 0, unsigned int h = 0) : width(w), height(h) {}
+	TScreenRes(unsigned int w = 0, unsigned int h = 0) : width(w), height(h) {}
 };
 
 class CWinsys {
@@ -46,11 +46,11 @@ public:
 
 	CWinsys();
 
-	const TScreenRes& GetResolution(std::size_t idx) const;
-	std::string GetResName(std::size_t idx) const;
+	const TScreenRes& GetResolution(size_t idx) const;
+	string GetResName(size_t idx) const;
 	void Init();
 	void SetupVideoMode(const TScreenRes& resolution);
-	void SetupVideoMode(std::size_t idx);
+	void SetupVideoMode(size_t idx);
 	void SetupVideoMode(int width, int height);
 	void KeyRepeat(bool repeat);
 	void PrintJoystickInfo() const;

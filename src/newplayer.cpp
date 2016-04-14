@@ -31,6 +31,7 @@ GNU General Public License for more details.
 #include "regist.h"
 #include "winsys.h"
 #include "spx.h"
+#include <cctype>
 
 CNewPlayer NewPlayer;
 
